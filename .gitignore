@@ -1,0 +1,9 @@
+*.sln
+*.vcxproj
+*.vcxproj.*
+.idea
+.vs
+CppProperties.json
+debug
+cmake-*
+x64
