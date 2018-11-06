@@ -6,7 +6,8 @@ using namespace web::http;
 
 Server::Server(uri address) {
 	m_server = http_listener(address);
-	m_server.support()
+	m_server.support(std::bind(&Server::default_handler, this, std::placeholders::_1);
+
 }
 
 
