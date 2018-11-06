@@ -1,19 +1,22 @@
 #include "Server.h"
 
+using namespace boost::asio;
+using namespace web;
+using namespace web::http;
 
-
-Server::Server(web::uri address) {
-	server = http_listener(address);
+Server::Server(uri address) {
+	m_server = http_listener(address);
+	m_server.support()
 }
 
 
 Server::~Server() {
 	if (closed) {
-		server.~http_listener();
+		m_server.~http_listener();
 	}
 	else {
 		close();
-		server.~http_listener();
+		m_server.~http_listener();
 
 	}
 
@@ -21,7 +24,7 @@ Server::~Server() {
 
 void Server::open() {
 	//TODO Maybe change to local refference. See https://stackoverflow.com/a/42029220
-	server.open().then([this](){
+	m_server.open().then([this](){
 			closed = false;
 		});
 	
@@ -29,8 +32,11 @@ void Server::open() {
 }
 
 void Server::close() {
-	server.close().then([this] {
+	m_server.close().then([this] {
 			closed = true;
 		});
-	
+}
+
+void Server::default_handler(http_request request) {
+	std::cout << request.body() << std::endl;
 }
