@@ -98,15 +98,20 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0A00</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Credentials.cpp" />
+    <ClCompile Include="Config.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Server.cpp" />
+    <ClCompile Include="SpotifyListener.cpp" />
     <ClCompile Include="spotify.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Credentials.h" />
-    <ClInclude Include="Server.h" />
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="SpotifyListener.h" />
     <ClInclude Include="spotify.h" />
   </ItemGroup>
   <ItemGroup>
