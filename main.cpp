@@ -1,6 +1,6 @@
 #include <iostream>
-#include "windows.h"
 #include "spotify.h"
+#include "windows.h"
 #include <cpprest/base_uri.h>
 
 HHOOK _hook;
@@ -33,13 +33,18 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 }
 
 void start_up() {
-	utility::string_t();
 	web::uri authorize_url(L"https://accounts.spotify.com/authorize");
-	test(authorize_url);
+	request(authorize_url);
+	
 }
 
 
 int main() {
+	get_authorization_code(Config::REDIRECT_URI);
+	
+
+	std::cin.get();
+	return 0;
     _hook = SetWindowsHookExA(WH_KEYBOARD_LL, LowLevelKeyboardProc, GetModuleHandle(NULL), 0);
     // Continuously looks for new keyboard inputs
     MSG msg;
