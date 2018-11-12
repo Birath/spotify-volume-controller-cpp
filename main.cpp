@@ -1,7 +1,11 @@
 #include <iostream>
+// Must be here due to collision with boost
 #include "spotify.h"
 #include "windows.h"
 #include <cpprest/base_uri.h>
+
+
+#include "Client.h"
 
 HHOOK _hook;
 KBDLLHOOKSTRUCT kdbStruct;
@@ -40,7 +44,13 @@ void start_up() {
 
 
 int main() {
-	get_authorization_code(Config::REDIRECT_URI);
+	//std::wstring code = get_authorization_code(Config::REDIRECT_URI);
+	//get_token(code);
+	json::value empty = json::value();
+	Client client(empty);
+	empty[L"test"] = json::value::string(L"test_value");
+	client.api_request(L"hello", empty, http::methods::GET);
+
 	
 
 	std::cin.get();
