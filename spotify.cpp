@@ -27,12 +27,16 @@ pplx::task<void> request(const web::uri &address, const method http_method) {
 pplx::task<http_response> request(http_request &request, const web::uri &address) {
 	http_client client(address);
 	return client.request(request).then([](http_response response) {
-		std::wostringstream ss;
-		ss << L"Server returned status code: " << response.status_code() << L'.' << std::endl;
-		std::wcout << ss.str();
-		ss.str(std::wstring());
-		ss << L"Content length is: " << response.headers().content_length() << L"bytes." << std::endl;
-		std::wcout << ss.str();
+		if (response.status_code() != 200) {
+			utility::ostringstream_t ss;
+			ss << L"Server returned error code: " << response.status_code() << L'.' << std::endl;
+			utility::conversions::print_string(ss.str());
+			ss.clear();
+			ss << L"Response body: " << "\n";
+			ss << get_json_response_body(response) << std::endl;
+			utility::conversions::print_string(ss.str());
+			// TODO check if error handeling is needed
+		}
 		return response;
 	});
 }
@@ -67,16 +71,13 @@ std::wstring get_authorization_code(const uri &callback_address) {
 	return authorization_code;
 }
 
-void get_token(const std::wstring &authorization_code) {
+web::json::value get_token(const std::wstring &authorization_code) {
 	http::http_request token_request = create_token_request(authorization_code);
 
-	pplx::task<http_response> response_task = request(token_request, BASE_SPOTIFY_API_URI);
+	pplx::task<http_response> response_task = request(token_request, Config::BASE_API_URI);
 	response_task.wait();
 	http_response response = response_task.get();
-	pplx::task<web::json::value> body_task = response.extract_json();
-	body_task.wait();
-	web::json::value response_body = body_task.get();
-	std::wcout << response_body << std::endl;
+	return get_json_response_body(response);
 }
 
 http::http_request create_token_request(const utility::string_t &authorization_code)  {

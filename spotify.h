@@ -10,6 +10,7 @@
 
 #include "SpotifyListener.h"
 #include "Config.h"
+#include "HttpUtils.h"
 
 using namespace web::http;
 using namespace web;
@@ -21,7 +22,7 @@ pplx::task<http_response> request(http_request &request, const web::uri &address
 
 std::wstring get_authorization_code(const web::uri &callback_address);
 
-void get_token(const std::wstring &authorization_code);
+web::json::value get_token(const std::wstring &authorization_code);
 
 void open_uri(const web::uri &uri) ;
 
@@ -38,7 +39,6 @@ utility::string_t get_authorize_string();
 
 const web::uri BASE_AUTHORIZATION_URI(L"https://accounts.spotify.com/authorize");
 const web::uri BASE_TOKEN_URI(L"/token");
-const web::uri BASE_SPOTIFY_API_URI(L"https://accounts.spotify.com/api/");
 
 
 
