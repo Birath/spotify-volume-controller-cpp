@@ -24,6 +24,19 @@ pplx::task<void> request(const web::uri &address, const method http_method) {
 	});
 }
 
+pplx::task<http_response> request(http_request &request, const web::uri &address) {
+	http_client client(address);
+	return client.request(request).then([](http_response response) {
+		std::wostringstream ss;
+		ss << L"Server returned status code: " << response.status_code() << L'.' << std::endl;
+		std::wcout << ss.str();
+		ss.str(std::wstring());
+		ss << L"Content length is: " << response.headers().content_length() << L"bytes." << std::endl;
+		std::wcout << ss.str();
+		return response;
+	});
+}
+
 void open_uri(const uri &uri)  {
 	std::stringstream ss;
 	//TODO Implement Linux support
@@ -38,7 +51,7 @@ void open_uri(const uri &uri)  {
 	system(ss.str().c_str());
 }
 
-void get_authorization_code(const uri &callback_address) {
+std::wstring get_authorization_code(const uri &callback_address) {
 	SpotifyListener listener(callback_address);
 	listener.open();
 	web::uri uri = create_authorization_uri();
@@ -49,9 +62,43 @@ void get_authorization_code(const uri &callback_address) {
 	std::wstring authorization_code;
 	listener.get_authorization_code(authorization_code);
 	
-	//http::http_request request = task.get();
 	std::wcout << authorization_code << std::endl;
 	listener.close();
+	return authorization_code;
+}
+
+void get_token(const std::wstring &authorization_code) {
+	http::http_request token_request = create_token_request(authorization_code);
+
+	pplx::task<http_response> response_task = request(token_request, BASE_SPOTIFY_API_URI);
+	response_task.wait();
+	http_response response = response_task.get();
+	pplx::task<web::json::value> body_task = response.extract_json();
+	body_task.wait();
+	web::json::value response_body = body_task.get();
+	std::wcout << response_body << std::endl;
+}
+
+http::http_request create_token_request(const utility::string_t &authorization_code)  {
+	http_request token_request;
+	token_request.set_request_uri(BASE_TOKEN_URI);
+	std::wstring body = L"grant_type=authorization_code&";
+	body.append(L"code=" + authorization_code);
+	body.append(L"&redirect_uri=" + Config::REDIRECT_URI);
+
+	token_request.set_body(body);
+
+	token_request.headers().set_content_type(L"application/x-www-form-urlencoded");
+	token_request.headers().add(L"Authorization", L"Basic " + get_authorize_string());
+	token_request.set_method(methods::POST);
+	return token_request;
+}
+
+utility::string_t get_authorize_string() {
+	utility::string_t unencoded;
+	unencoded.append(Config::CLIENT_ID + L":" + Config::CLIENT_SECRET);
+	std::vector<unsigned char> byte_vector(unencoded.begin(), unencoded.end());
+	return utility::conversions::to_base64(byte_vector);
 }
 
 web::uri create_authorization_uri() {
@@ -60,8 +107,8 @@ web::uri create_authorization_uri() {
 	authorization_uri.append_query(L"redirect_uri", Config::REDIRECT_URI, true);
 	authorization_uri.append_query(L"response_type", L"code", true);
 	authorization_uri.append_query(L"scope", Config::SCOPES, true);
-	std::wcout << authorization_uri.to_string() << std::endl;
 
 	return authorization_uri.to_uri();
 }
+
 
