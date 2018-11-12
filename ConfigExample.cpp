@@ -18,3 +18,5 @@ utility::string_t Config::CLIENT_SECRET = L"your-client-secret-here";
 
 utility::string_t Config::SCOPES = L"user-read-playback-state user-modify-playback-state";
 utility::string_t Config::REDIRECT_URI = L"http://localhost:5000/callback";
+
+uri Config::BASE_API_URI(L"https://accounts.spotify.com/api/");

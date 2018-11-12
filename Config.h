@@ -1,8 +1,9 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <cpprest/asyncrt_utils.h>
+#include <cpprest/uri.h>
 
+using namespace web;
 class Config
 {
 public:
@@ -14,6 +15,8 @@ public:
 	static utility::string_t SCOPES;
 	
 	static utility::string_t REDIRECT_URI;
+
+	static uri BASE_API_URI;
 
 };
 
