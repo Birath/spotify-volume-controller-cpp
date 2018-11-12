@@ -1,16 +1,19 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <cpprest/asyncrt_utils.h>
+
 class Config
 {
 public:
 	Config();
 	~Config();
 
-	static std::wstring CLIENT_ID;
-	static std::wstring CLIENT_SECRET;
-	static std::wstring SCOPES;
+	static utility::string_t CLIENT_ID;
+	static utility::string_t CLIENT_SECRET;
+	static utility::string_t SCOPES;
 	
-	static std::wstring REDIRECT_URI;
+	static utility::string_t REDIRECT_URI;
+
 };
 
