@@ -104,16 +104,20 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Client.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="ConfigExample.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="HttpUtils.cpp" />
     <ClCompile Include="SpotifyListener.cpp" />
     <ClCompile Include="spotify.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Client.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="HttpUtils.h" />
     <ClInclude Include="SpotifyListener.h" />
     <ClInclude Include="spotify.h" />
   </ItemGroup>
