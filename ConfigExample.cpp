@@ -13,10 +13,10 @@ Config::Config() {
 Config::~Config() {
 }
 // Must be kept secret!
-utility::string_t Config::CLIENT_ID = L"your-client-id-here";
-utility::string_t Config::CLIENT_SECRET = L"your-client-secret-here";
+const utility::string_t Config::CLIENT_ID = L"your-client-id-here";
+const utility::string_t Config::CLIENT_SECRET = L"your-client-secret-here";
 
-utility::string_t Config::SCOPES = L"user-read-playback-state user-modify-playback-state";
-utility::string_t Config::REDIRECT_URI = L"http://localhost:5000/callback";
+const utility::string_t Config::SCOPES = L"user-read-playback-state user-modify-playback-state";
+const utility::string_t Config::REDIRECT_URI = L"http://localhost:5000/callback";
 
-uri Config::BASE_API_URI(L"https://accounts.spotify.com/api/");
+const uri Config::BASE_API_URI(L"https://accounts.spotify.com/api/");

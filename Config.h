@@ -10,13 +10,13 @@ public:
 	Config();
 	~Config();
 
-	static utility::string_t CLIENT_ID;
-	static utility::string_t CLIENT_SECRET;
-	static utility::string_t SCOPES;
+	static const utility::string_t CLIENT_ID;
+	static const utility::string_t CLIENT_SECRET;
+	static const utility::string_t SCOPES;
 	
-	static utility::string_t REDIRECT_URI;
+	static const utility::string_t REDIRECT_URI;
 
-	static uri BASE_API_URI;
+	static const uri BASE_API_URI;
 
 };
 
