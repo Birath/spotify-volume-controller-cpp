@@ -16,7 +16,7 @@ public:
 	
 	static const utility::string_t REDIRECT_URI;
 
-	static const uri BASE_API_URI;
+	static const uri BASE_AUTHENTICATION_API_URI;
 
 };
 
