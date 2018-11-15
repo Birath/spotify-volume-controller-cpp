@@ -44,12 +44,14 @@ void start_up() {
 
 
 int main() {
-	//std::wstring code = get_authorization_code(Config::REDIRECT_URI);
-	//get_token(code);
-	json::value empty = json::value();
-	Client client(empty);
-	empty[L"test"] = json::value::string(L"test_value");
-	client.api_request(L"hello", empty, http::methods::GET);
+	std::wstring code = get_authorization_code(Config::REDIRECT_URI);
+	
+	Client client(get_token(code));
+	//empty[L"test"] = json::value::string(L"test_value");
+	auto task = client.get_device_info();
+	task.wait();
+	//std::wcout << task.get() << std::endl;
+	
 
 	
 
