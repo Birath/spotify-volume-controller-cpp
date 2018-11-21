@@ -15,8 +15,6 @@
 using namespace web::http;
 using namespace web;
 
-
-
 pplx::task<void> request(const web::uri &address, const method http_method = methods::GET);
 pplx::task<http_response> request(http_request &request, const web::uri &address);
 
