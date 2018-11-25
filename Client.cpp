@@ -5,7 +5,6 @@ const uri Client::BASE_API_URI(L"https://api.spotify.com");
 
 Client::Client(json::value &token_info) : m_token_info(token_info) {};
 
-
 Client::~Client() {
 }
 
@@ -32,7 +31,6 @@ pplx::task<http::http_response> Client::api_request(const utility::string_t & en
 
 pplx::task<json::value> Client::get_device_info() {
 	return api_request(L"/v1/me/player/devices", http::methods::GET).then([](http::http_response response) {
-		std::wcout << "Test" << std::endl;
 		return get_json_response_body(response).get();
 	});
 }
