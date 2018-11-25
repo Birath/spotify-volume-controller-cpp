@@ -32,21 +32,33 @@ utility::string_t get_authorization_code(const uri &callback_address) {
 	listener.open();
 
 	web::uri uri = create_authorization_uri();
+	std::wcout << "Please accept the prompt in your browser." << std::endl;
+	std::wcout << "If your browser did not open, please go to the following link to accept the prompt:" << '\n';
+	std::wcout << uri.to_string() << std::endl;
 	open_uri(uri);
 	
 	utility::string_t authorization_code = listener.get_authorization_code();
 	listener.close();
+	if (authorization_code.substr(0, 5) == L"Error") {
+		std::wcout << "Authorization failed. Reason: " << authorization_code << std::endl;
+		return L"";
+	}
 	return authorization_code;
 }
 
-web::json::value get_token(const utility::string_t &authorization_code) {
-	http::http_request token_request = create_token_request(authorization_code, L"authorization_code");
+web::json::value fetch_token(const utility::string_t &code, const utility::string_t &grant_type) {
+	http::http_request token_request = create_token_request(code, grant_type);
 
 	pplx::task<http_response> response_task = request(token_request, Config::BASE_AUTHENTICATION_API_URI);
 	response_task.wait();
 	http_response response = response_task.get();
 	web::json::value token = get_json_response_body(response).get();
+	return token;
+}
 
+web::json::value get_token(const utility::string_t &authorization_code) {
+	web::json::value token = fetch_token(authorization_code, L"authorization_code");
+	
 	// Adds the epoch time when the token will expire
 	auto expiration_time = std::chrono::system_clock::now().time_since_epoch();
 	expiration_time += std::chrono::seconds(token[L"expires_in"].as_integer());
@@ -56,9 +68,15 @@ web::json::value get_token(const utility::string_t &authorization_code) {
 }
 
 web::json::value get_token() {
+	std::wcout << "Getting authorization token..." << std::endl;
 	web::json::value token = read_token();
 	if (token.is_null()) {
-		return get_token(get_authorization_code(Config::REDIRECT_URI));
+		std::wcout << "No existing token found, creating new" << std::endl;
+		utility::string_t authorization_code = get_authorization_code(Config::REDIRECT_URI);
+		if (authorization_code == L"") {
+			return json::value::null();
+		}
+		return get_token(authorization_code);
 	}
 	else if (token_is_expired(token)) {
 		refresh_token(token);
@@ -67,12 +85,7 @@ web::json::value get_token() {
 }
 
 void refresh_token(web::json::value & token) {
-	auto token_request = create_token_request(token.at(L"refresh_token").as_string(), L"refresh_token");
-	pplx::task<http_response> response_task = request(token_request, Config::BASE_AUTHENTICATION_API_URI);
-	response_task.wait();
-	http_response response = response_task.get();
-
-	web::json::value new_token = get_json_response_body(response).get();
+	web::json::value new_token = fetch_token(token.at(L"refresh_token").as_string(), L"refresh_token");
 	token[L"access_token"] = new_token.at(L"access_token");
 	token[L"token_type"] = new_token.at(L"token_type");
 	token[L"scope"] = new_token.at(L"scope");
@@ -92,7 +105,7 @@ void save_token(const web::json::value & token) {
 		token_file.close();
 	}
 	else {
-		std::wcout << "Failed to write token to file" << "\n";
+		std::cerr << "Failed to write token to file" << "\n";
 	}
 }
 
@@ -104,23 +117,15 @@ web::json::value read_token() {
 		return token;
 	}
 	else {
-		std::wcout << "Failed to read token from file" << "\n";
+		std::cerr << "Failed to read token from file" << "\n";
 		return json::value::null();
 	}
 }
 
 bool token_is_expired(const web::json::value & token) {
-	std::wcout << "Checking if token expired" << std::endl;
 	using namespace std::chrono;
 	auto expiration_epoch_time = token.at(L"expires_at").as_number().to_uint64();
-	std::wcout << expiration_epoch_time << std::endl;
-	//milliseconds expiration_duration(expiration_epoch_time);
-	//std::wcout << expiration_duration.count() << std::endl;
-	//time_point<system_clock> expiration_clock(expiration_duration);
-	//time_point<system_clock()> expiration_clock(expiration_duration);
-	//std::wcout << system_clock::from_time_t(expiration_duration).time_since_epoch().count() << std::endl;
 	if (system_clock::now().time_since_epoch().count() > expiration_epoch_time) {
-		std::wcout << "Token expired" << std::endl;
 		return true;
 	}
 	return false;
@@ -161,5 +166,6 @@ web::uri create_authorization_uri() {
 	authorization_uri.append_query(L"redirect_uri", Config::REDIRECT_URI, true);
 	authorization_uri.append_query(L"response_type", L"code", true);
 	authorization_uri.append_query(L"scope", Config::SCOPES, true);
+	authorization_uri.append_query(L"show_dialog", "true");
 	return authorization_uri.to_uri();
 }

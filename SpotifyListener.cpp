@@ -35,7 +35,7 @@ void SpotifyListener::request_handler(http_request &request) {
 		m_authorization_code << queries[L"code"];
 	}
 	else {
-		m_authorization_code << queries[L"error"];
+		m_authorization_code << L"Error: " << queries[L"error"];
 	}
 	
 }
