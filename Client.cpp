@@ -1,5 +1,6 @@
 #include "Client.h"
-#include "HttpUtils.h"
+#include "http_utils.h"
+#include "oauth.h"
 const uri Client::BASE_API_URI(L"https://api.spotify.com");
 
 Client::Client(json::value &token_info) : m_token_info(token_info) {};
@@ -13,7 +14,6 @@ pplx::task<http::http_response> Client::api_request(const utility::string_t & en
 	request.set_request_uri(endpoint);
 	request.set_method(http_method);
 	authorize_header(request);
-	std::wcout << request.to_string() << std::endl;
 	uri_builder api_uri(BASE_API_URI);
 	http::client::http_client client(api_uri.to_uri());
 
@@ -32,7 +32,8 @@ pplx::task<http::http_response> Client::api_request(const utility::string_t & en
 
 pplx::task<json::value> Client::get_device_info() {
 	return api_request(L"/v1/me/player/devices", http::methods::GET).then([](http::http_response response) {
-		return get_json_response_body(response);
+		std::wcout << "Test" << std::endl;
+		return get_json_response_body(response).get();
 	});
 }
 
@@ -70,7 +71,6 @@ bool Client::set_volume(int volume) {
 
 int Client::get_current_playing_volume() {
 	json::value device_info = get_device_info().get();
-	std::wcout << device_info << std::endl;
 
 	for each (auto device in device_info[L"devices"].as_array()) {
 		if (device[L"is_active"].as_bool()) {
@@ -82,12 +82,15 @@ int Client::get_current_playing_volume() {
 }
 
 void Client::authorize_header(http::http_request request) {
+	if (token_is_expired(m_token_info)) {
+		refresh_token(m_token_info);
+	}
 	request.headers()[L"Authorization"] = L"Bearer " + m_token_info[ACCESS_TOKEN].as_string();
 }
 
 void Client::print_error_message(const http::http_response &response) {
 	utility::stringstream_t error_stream;
-	json::value body = get_json_response_body(response);
+	json::value body = get_json_response_body(response).get();
 	json::value error_body = body[L"error"];
 	error_stream << "Status Code: " << error_body[L"status"] << '\n';
 	error_stream << "Error message: " << error_body[L"message"] << '\n';
@@ -97,7 +100,7 @@ void Client::print_error_message(const http::http_response &response) {
 
 void Client::print_play_error_message(const http::http_response &response) {
 	utility::stringstream_t error_stream;
-	json::value body = get_json_response_body(response);
+	json::value body = get_json_response_body(response).get();
 	json::value error_body = body[L"error"];
 	error_stream << "Status code: " << error_body[L"status"] << '\n';
 	error_stream << "Error message: " << error_body[L"message"] << '\n';

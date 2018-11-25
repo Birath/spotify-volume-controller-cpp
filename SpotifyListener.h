@@ -2,10 +2,8 @@
 #include <cpprest/http_listener.h>
 #include <boost/asio/ssl.hpp>
 
-using namespace web::http::experimental::listener;
-using namespace boost::asio;
-class SpotifyListener
-{
+
+class SpotifyListener {
 public:
 	SpotifyListener(const web::uri &address);
 	SpotifyListener();
@@ -15,16 +13,16 @@ public:
 	/// Gets the authorization code when it's done or, if it failed, the reason why
 	/// </summary>
 	/// <returns>The authorization code or error message</returns>
-	void get_authorization_code(std::wstring &authorization_code);
+	utility::string_t get_authorization_code();
 
 	void open();
 	void close();
 private:
 
-	void default_handler(web::http::http_request &request);
+	void request_handler(web::http::http_request &request);
 
-	http_listener m_server;
-	std::wstringstream m_authorization_code;
+	web::http::experimental::listener::http_listener m_server;
+	utility::stringstream_t m_authorization_code;
 	bool closed = false;
 
 };

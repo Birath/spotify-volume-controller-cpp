@@ -1,6 +1,6 @@
 #include <iostream>
 // Must be here due to collision with boost
-#include "spotify.h"
+#include "oauth.h"
 #include "windows.h"
 #include <cpprest/base_uri.h>
 
@@ -10,7 +10,8 @@
 HHOOK _hook;
 KBDLLHOOKSTRUCT kdbStruct;
 
-void start_up();
+Client *client;
+int volume;
 
 LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
     // Ignore
@@ -23,12 +24,16 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
         if (kdbStruct.vkCode == VK_VOLUME_UP) {
             std::cout << "Volume up" << std::endl;
             // Blocks the keypress
-			start_up();
+			client->set_volume(volume++);
+			std::cout << "Was this blocked" << std::endl;
+
             return 1;
         }
         else if(kdbStruct.vkCode == VK_VOLUME_DOWN) {
             std::cout << "Volume down" << std::endl;
             // Blocks the keypress
+			client->set_volume(volume--);
+
             return 1;
         }
 
@@ -38,25 +43,18 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 
 void start_up() {
 	web::uri authorize_url(L"https://accounts.spotify.com/authorize");
-	request(authorize_url);
+	//request(authorize_url);
 	
 }
 
 
 int main() {
-	std::wstring code = get_authorization_code(Config::REDIRECT_URI);
-	
-	Client client(get_token(code));
-	//empty[L"test"] = json::value::string(L"test_value");
-	auto task = client.get_device_info();
-	task.wait();
-	//std::wcout << task.get() << std::endl;
-	
-
-	
+	Client bla(get_token());
+	client = &bla;
+	volume = client->get_current_playing_volume();
 
 	std::cin.get();
-	return 0;
+	//return 0;
     _hook = SetWindowsHookExA(WH_KEYBOARD_LL, LowLevelKeyboardProc, GetModuleHandle(NULL), 0);
     // Continuously looks for new keyboard inputs
     MSG msg;

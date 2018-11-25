@@ -18,9 +18,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="spotify.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SpotifyListener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -30,27 +27,30 @@
     <ClCompile Include="ConfigExample.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HttpUtils.cpp">
+    <ClCompile Include="Client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Client.cpp">
+    <ClCompile Include="oauth.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="http_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="spotify.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SpotifyListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HttpUtils.h">
+    <ClInclude Include="Client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Client.h">
+    <ClInclude Include="oauth.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="http_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,9 +1,6 @@
 #pragma once
-#include <string>
-#include <vector>
 #include <cpprest/uri.h>
 
-using namespace web;
 class Config
 {
 public:
@@ -16,7 +13,7 @@ public:
 	
 	static const utility::string_t REDIRECT_URI;
 
-	static const uri BASE_AUTHENTICATION_API_URI;
+	static const web::uri BASE_AUTHENTICATION_API_URI;
 
 };
 

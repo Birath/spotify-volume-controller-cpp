@@ -110,16 +110,16 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="HttpUtils.cpp" />
+    <ClCompile Include="http_utils.cpp" />
     <ClCompile Include="SpotifyListener.cpp" />
-    <ClCompile Include="spotify.cpp" />
+    <ClCompile Include="oauth.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h" />
     <ClInclude Include="Config.h" />
-    <ClInclude Include="HttpUtils.h" />
+    <ClInclude Include="http_utils.h" />
     <ClInclude Include="SpotifyListener.h" />
-    <ClInclude Include="spotify.h" />
+    <ClInclude Include="oauth.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cmake-build-debug\cmakefiles\spotify_volume_controller_cpp.dir\CXX.includecache" />
