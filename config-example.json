@@ -1,0 +1,5 @@
+{
+    "client_id": "Your client id here",
+    "client_secret": "Your client secret here",
+    "redirect_url": "http://localhost:5000/callback"
+}

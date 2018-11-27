@@ -4,7 +4,6 @@
 
 #include "oauth.h"
 #include "http_utils.h"
-#include "Config.h"
 #include "SpotifyListener.h"
 
 using namespace web;
@@ -27,11 +26,11 @@ void open_uri(const uri &uri)  {
 	system(ss.str().c_str());
 }
 
-utility::string_t get_authorization_code(const uri &callback_address) {
+utility::string_t get_authorization_code(const uri &callback_address, const Config &config) {
 	SpotifyListener listener(callback_address);
 	listener.open();
 
-	web::uri uri = create_authorization_uri();
+	web::uri uri = create_authorization_uri(config);
 	std::wcout << "Please accept the prompt in your browser." << std::endl;
 	std::wcout << "If your browser did not open, please go to the following link to accept the prompt:" << '\n';
 	std::wcout << uri.to_string() << std::endl;
@@ -46,8 +45,8 @@ utility::string_t get_authorization_code(const uri &callback_address) {
 	return authorization_code;
 }
 
-web::json::value fetch_token(const utility::string_t &code, const utility::string_t &grant_type) {
-	http::http_request token_request = create_token_request(code, grant_type);
+web::json::value fetch_token(const utility::string_t &code, const utility::string_t &grant_type, const Config &config) {
+	http::http_request token_request = create_token_request(code, grant_type, config);
 
 	pplx::task<http_response> response_task = request(token_request, Config::BASE_AUTHENTICATION_API_URI);
 	response_task.wait();
@@ -56,8 +55,8 @@ web::json::value fetch_token(const utility::string_t &code, const utility::strin
 	return token;
 }
 
-web::json::value get_token(const utility::string_t &authorization_code) {
-	web::json::value token = fetch_token(authorization_code, L"authorization_code");
+web::json::value get_token(const utility::string_t &authorization_code, const Config &config) {
+	web::json::value token = fetch_token(authorization_code, L"authorization_code", config);
 	
 	// Adds the epoch time when the token will expire
 	auto expiration_time = std::chrono::system_clock::now().time_since_epoch();
@@ -67,25 +66,25 @@ web::json::value get_token(const utility::string_t &authorization_code) {
 	return token;
 }
 
-web::json::value get_token() {
+web::json::value get_token(const Config &config) {
 	std::wcout << "Getting authorization token..." << std::endl;
 	web::json::value token = read_token();
 	if (token.is_null()) {
 		std::wcout << "No existing token found, creating new" << std::endl;
-		utility::string_t authorization_code = get_authorization_code(Config::REDIRECT_URI);
+		utility::string_t authorization_code = get_authorization_code(config.get_redirect_url(), config);
 		if (authorization_code == L"") {
 			return json::value::null();
 		}
-		return get_token(authorization_code);
+		return get_token(authorization_code, config);
 	}
 	else if (token_is_expired(token)) {
-		refresh_token(token);
+		refresh_token(token, config);
 	}
 	return token;
 }
 
-void refresh_token(web::json::value & token) {
-	web::json::value new_token = fetch_token(token.at(L"refresh_token").as_string(), L"refresh_token");
+void refresh_token(web::json::value & token, const Config &config) {
+	web::json::value new_token = fetch_token(token.at(L"refresh_token").as_string(), L"refresh_token", config);
 	token[L"access_token"] = new_token.at(L"access_token");
 	token[L"token_type"] = new_token.at(L"token_type");
 	token[L"scope"] = new_token.at(L"scope");
@@ -132,13 +131,13 @@ bool token_is_expired(const web::json::value & token) {
 }
 
 
-http::http_request create_token_request(const utility::string_t &authorization_code, const utility::string_t &grant_type)  {
+http::http_request create_token_request(const utility::string_t &authorization_code, const utility::string_t &grant_type, const Config &config)  {
 	http_request token_request;
 	token_request.set_request_uri(BASE_TOKEN_URI);
 	utility::string_t body = L"grant_type=" + grant_type;
 	if (grant_type == L"authorization_code") {
 		body.append(L"&code=" + authorization_code);
-		body.append(L"&redirect_uri=" + Config::REDIRECT_URI);
+		body.append(L"&redirect_uri=" + config.get_redirect_url());
 	} 
 	else {
 		body.append(L"&refresh_token=" + authorization_code);
@@ -147,23 +146,23 @@ http::http_request create_token_request(const utility::string_t &authorization_c
 	token_request.set_body(body);
 
 	token_request.headers().set_content_type(L"application/x-www-form-urlencoded");
-	token_request.headers().add(L"Authorization", L"Basic " + get_authorize_string());
+	token_request.headers().add(L"Authorization", L"Basic " + get_authorize_string(config));
 	token_request.set_method(methods::POST);
 	return token_request;
 }
 
 
-utility::string_t get_authorize_string() {
+utility::string_t get_authorize_string(const Config &config) {
 	utility::string_t unencoded;
-	unencoded.append(Config::CLIENT_ID + L":" + Config::CLIENT_SECRET);
+	unencoded.append(config.get_client_id() + L":" + config.get_client_secret());
 	std::vector<unsigned char> byte_vector(unencoded.begin(), unencoded.end());
 	return utility::conversions::to_base64(byte_vector);
 }
 
-web::uri create_authorization_uri() {
+web::uri create_authorization_uri(const Config &config) {
 	web::uri_builder authorization_uri(BASE_AUTHORIZATION_URI);
-	authorization_uri.append_query(L"client_id", Config::CLIENT_ID, true);
-	authorization_uri.append_query(L"redirect_uri", Config::REDIRECT_URI, true);
+	authorization_uri.append_query(L"client_id", config.get_client_id(), true);
+	authorization_uri.append_query(L"redirect_uri", config.get_redirect_url(), true);
 	authorization_uri.append_query(L"response_type", L"code", true);
 	authorization_uri.append_query(L"scope", Config::SCOPES, true);
 	authorization_uri.append_query(L"show_dialog", "true");

@@ -125,6 +125,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cmake-build-debug\cmakefiles\spotify_volume_controller_cpp.dir\CXX.includecache" />
+    <None Include="config-example.json" />
+    <None Include="config.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

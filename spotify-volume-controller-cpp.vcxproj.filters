@@ -53,5 +53,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cmake-build-debug\cmakefiles\spotify_volume_controller_cpp.dir\CXX.includecache" />
+    <None Include="config.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="config-example.json">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

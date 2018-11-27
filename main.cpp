@@ -38,13 +38,19 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 
 int main() {
 	std::wcout << "Starting..." << '\n';
-	web::json::value token = get_token();
+	Config config;
+	if (!config.is_valid()) {
+		std::wcout << "Failed to read config file." << std::endl;
+		std::cin.get();
+		return 1;
+	}
+	web::json::value token = get_token(config);
 	if (token.is_null()) {
 		std::wcout << "Failed to connect to spotify, exiting..." << std::endl;
 		std::cin.get();
 		return 1;
 	}
-	Client temp(token);
+	Client temp(token, config);
 	client = &temp;
 	volume = client->get_current_playing_volume();
 	std::wcout << "Connected to spotify successfully!" << std::endl;

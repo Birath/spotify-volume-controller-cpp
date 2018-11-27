@@ -3,9 +3,9 @@
 #include "oauth.h"
 const uri Client::BASE_API_URI(L"https://api.spotify.com");
 
-Client::Client(json::value &token_info) : m_token_info(token_info) {};
+Client::Client(json::value &token_info, const Config &config) : m_token_info(token_info), m_config(config)  {};
 
-Client::~Client() {
+Client::~Client () {
 }
 
 pplx::task<http::http_response> Client::api_request(const utility::string_t & endpoint, const http::method http_method) {
@@ -81,7 +81,7 @@ int Client::get_current_playing_volume() {
 
 void Client::authorize_header(http::http_request request) {
 	if (token_is_expired(m_token_info)) {
-		refresh_token(m_token_info);
+		refresh_token(m_token_info, m_config);
 	}
 	request.headers()[L"Authorization"] = L"Bearer " + m_token_info[ACCESS_TOKEN].as_string();
 }
