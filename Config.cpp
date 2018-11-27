@@ -21,6 +21,20 @@ utility::string_t Config::get_redirect_url() const{
 	return config.at(L"redirect_url").as_string();
 }
 
+int Config::get_volume_up() const {
+	if (config.at(L"volume-up").is_null()) {
+		return -1;
+	}
+	return config.at(L"volume-up").as_integer();
+}
+
+int Config::get_volume_down() const {
+	if (config.at(L"volume-down").is_null()) {
+		return -1;
+	}
+	return config.at(L"volume-down").as_integer();
+}
+
 bool Config::is_valid() {
 	return !config.is_null();
 }

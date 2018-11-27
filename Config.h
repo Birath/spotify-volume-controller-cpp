@@ -20,6 +20,8 @@ public:
 	utility::string_t get_client_id() const;
 	utility::string_t get_client_secret() const;
 	utility::string_t get_redirect_url() const;
+	int get_volume_up() const;
+	int get_volume_down() const;
 	bool is_valid();
 
 	static const utility::string_t SCOPES;
