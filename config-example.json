@@ -1,5 +1,8 @@
 {
     "client_id": "Your client id here",
     "client_secret": "Your client secret here",
-    "redirect_url": "http://localhost:5000/callback"
+    "redirect_url": "http://localhost:5000/callback",
+	"volume_up": "default",
+	"volume_down": "default",
+	"print_keys": false
 }
