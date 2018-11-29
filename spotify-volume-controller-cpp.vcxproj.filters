@@ -33,6 +33,12 @@
     <ClCompile Include="http_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VolumeController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="key_hooks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SpotifyListener.h">
@@ -48,6 +54,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="http_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="key_hooks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

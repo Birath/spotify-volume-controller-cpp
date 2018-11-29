@@ -3,7 +3,7 @@
 #include "oauth.h"
 const uri Client::BASE_API_URI(L"https://api.spotify.com");
 
-Client::Client(json::value &token_info, const Config &config) : m_token_info(token_info), m_config(config)  {};
+Client::Client(json::value &token_info, const Config &config) : m_token_info(token_info), m_config(config)  {}
 
 Client::~Client () {
 }

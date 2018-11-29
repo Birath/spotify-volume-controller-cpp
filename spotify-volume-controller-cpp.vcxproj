@@ -113,15 +113,19 @@
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="http_utils.cpp" />
+    <ClCompile Include="key_hooks.cpp" />
     <ClCompile Include="SpotifyListener.cpp" />
     <ClCompile Include="oauth.cpp" />
+    <ClCompile Include="VolumeController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="key_hooks.h" />
     <ClInclude Include="http_utils.h" />
     <ClInclude Include="SpotifyListener.h" />
     <ClInclude Include="oauth.h" />
+    <ClInclude Include="VolumeController.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cmake-build-debug\cmakefiles\spotify_volume_controller_cpp.dir\CXX.includecache" />

@@ -21,18 +21,31 @@ utility::string_t Config::get_redirect_url() const{
 	return config.at(L"redirect_url").as_string();
 }
 
+bool Config::should_print_keys() const {
+	return config.at(L"print_keys").as_bool();
+}
+
 int Config::get_volume_up() const {
-	if (config.at(L"volume-up").is_null()) {
+	if (!config.has_field(L"volume_up")) {
 		return -1;
 	}
-	return config.at(L"volume-up").as_integer();
+	web::json::value v_up = config.at(L"volume_up");
+	if (!v_up.is_integer()) {
+		return -1;
+	}
+	return v_up.as_integer();
 }
 
 int Config::get_volume_down() const {
-	if (config.at(L"volume-down").is_null()) {
+	if (!config.has_field(L"volume_down")) {
 		return -1;
 	}
-	return config.at(L"volume-down").as_integer();
+	web::json::value v_down = config.at(L"volume_down");
+	
+	if (!v_down.is_integer()) {
+		return -1;
+	}
+	return v_down.as_integer();
 }
 
 bool Config::is_valid() {
