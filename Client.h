@@ -36,6 +36,12 @@ public:
 	/// Returns the volume percent of the current playing device, or -1 if no playing devices
 	/// </summary>
 	int get_current_playing_volume();
+
+	/// <summary>
+	/// Returns the first desktop device found
+	/// </summary>
+	json::value get_desktop_player();
+
 private:
 
 	void authorize_header(http::http_request request);

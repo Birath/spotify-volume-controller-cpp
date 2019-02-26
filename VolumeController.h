@@ -9,6 +9,8 @@ public:
 	VolumeController(const Config &config, Client &client);
 	~VolumeController();
 
+	void set_active_device();
+
 	int get_volume();
 	void set_volume(int new_volume);
 
@@ -22,6 +24,7 @@ public:
 private:
 	
 	int volume = 0;
+	json::value active_device = json::value::Null;
 	const Config m_config;
 	Client m_client;
 	

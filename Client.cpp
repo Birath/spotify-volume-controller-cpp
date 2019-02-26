@@ -40,7 +40,7 @@ bool Client::set_device_volume(int volume, const utility::string_t &device_id) {
 		utility::stringstream_t query;
 		query << "volume_percent=" << volume;
 		if (!device_id.empty()) {
-			query << "?";
+			query << "&";
 			query << "device_id=" << device_id;
 		}
 
@@ -68,15 +68,24 @@ bool Client::set_volume(int volume) {
 }
 
 int Client::get_current_playing_volume() {
-	json::value device_info = get_device_info().get();
+	json::array devices = get_device_info().get()[L"devices"].as_array();
 
-	for each (auto device in device_info[L"devices"].as_array()) {
+	for each (auto device in devices) {
 		if (device[L"is_active"].as_bool()) {
 			// Volume percentage may be null according to documentation
 			if (device[L"volume_percent"].is_integer()) return device[L"volume_percent"].as_integer();
 		}
 	}
 	return -1;
+}
+
+json::value Client::get_desktop_player() {
+	json::array devices = get_device_info().get()[L"devices"].as_array();
+
+	for each (auto device in devices) {
+		if (device[L"type"].as_string().compare(L"Computer") == 0) return device;
+	}
+	return json::value::Null;
 }
 
 void Client::authorize_header(http::http_request request) {
