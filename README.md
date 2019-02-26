@@ -27,6 +27,7 @@ vcpkg install cpprestsdk:x86-windows-static
 vcpkg install cpprestsdk:x64-windows-static
 ```
   * After the installation, open the project's ```.vcxproj``` file and add the following lines to the ```Globals``` PropertyGroup
+    * If you only want to build a static version for certain build configurations add ```And '$(Configuration)' == 'DesiredConfiguration'``` to the ```Condition``` property. 
   ```xml
   <PropertyGroup Label="Globals">
     <!-- .... -->
