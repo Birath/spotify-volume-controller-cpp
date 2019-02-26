@@ -23,7 +23,7 @@
     <ProjectGuid>{7FDBEBB1-78E0-4F0B-9CC1-42CBDC4F1F63}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
-    <VcpkgTriplet Condition="'$(Platform)'=='x64'">x64-windows-static</VcpkgTriplet>
+    <VcpkgTriplet Condition="'$(Platform)'=='x64' And '$(Configuration)' == 'Release'">x64-windows-static</VcpkgTriplet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
