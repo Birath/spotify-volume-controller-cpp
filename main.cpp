@@ -6,8 +6,6 @@
 #include "Client.h"
 #include "VolumeController.h"
 
-Client *client;
-
 int main() {
 	std::wcout << "Starting..." << '\n';
 	Config config;
@@ -22,11 +20,10 @@ int main() {
 		std::cin.get();
 		return 1;
 	}
-	Client temp(token, config);
-	client = &temp;
+	Client client(token, config);
 	
 	std::wcout << "Connected to spotify successfully!" << std::endl;
-	VolumeController controller(config, *client);
+	VolumeController controller(config, client);
 	if (config.should_print_keys()) {
 		controller.print_keys();
 	}
