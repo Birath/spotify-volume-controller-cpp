@@ -51,7 +51,7 @@ web::json::value fetch_token(const utility::string_t &code, const utility::strin
 	pplx::task<http_response> response_task = request(token_request, Config::BASE_AUTHENTICATION_API_URI);
 	response_task.wait();
 	http_response response = response_task.get();
-	web::json::value token = get_json_response_body(response).get();
+	web::json::value token = get_json_response_body(response);
 	return token;
 }
 
@@ -85,6 +85,17 @@ web::json::value get_token(const Config &config) {
 
 void refresh_token(web::json::value & token, const Config &config) {
 	web::json::value new_token = fetch_token(token.at(L"refresh_token").as_string(), L"refresh_token", config);
+	if (new_token.has_field(L"error")) {
+		std::wcout << L"Failed to refresh token." << std::endl;
+		std::wcout << L"Error: " << new_token[L"error"] << std::endl;
+		std::wcout << L"Error description: " << new_token[L"error_description"] << std::endl;
+		if (new_token[L"error"].as_string().compare(L"invalid_client") == 0) {
+			std::wcout << L"Check that the client id/secret is correct." << std::endl;
+		}
+		std::cin.get();
+		exit(1);
+		return;
+	}
 	token[L"access_token"] = new_token.at(L"access_token");
 	token[L"token_type"] = new_token.at(L"token_type");
 	token[L"scope"] = new_token.at(L"scope");
@@ -124,10 +135,7 @@ web::json::value read_token() {
 bool token_is_expired(const web::json::value & token) {
 	using namespace std::chrono;
 	auto expiration_epoch_time = token.at(L"expires_at").as_number().to_uint64();
-	if (system_clock::now().time_since_epoch().count() > expiration_epoch_time) {
-		return true;
-	}
-	return false;
+	return system_clock::now().time_since_epoch().count() > expiration_epoch_time;
 }
 
 

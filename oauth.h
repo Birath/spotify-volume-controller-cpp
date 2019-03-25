@@ -13,6 +13,10 @@ web::json::value get_token(const utility::string_t &authorization_code, const Co
 web::json::value get_token(const Config &config);
 
 void refresh_token(web::json::value &token, const Config &config);
+
+
+web::json::value fetch_token(const utility::string_t &code, const utility::string_t &grant_type, const Config &config);
+
 // Saves *token* to a file
 void save_token(const web::json::value &token);
 

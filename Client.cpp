@@ -31,7 +31,7 @@ pplx::task<http::http_response> Client::api_request(const utility::string_t & en
 
 pplx::task<json::value> Client::get_device_info() {
 	return api_request(L"/v1/me/player/devices", http::methods::GET).then([](http::http_response response) {
-		return get_json_response_body(response).get();
+		return get_json_response_body(response);
 	});
 }
 
@@ -97,7 +97,7 @@ void Client::authorize_header(http::http_request request) {
 
 void Client::print_error_message(const http::http_response &response) {
 	utility::stringstream_t error_stream;
-	json::value body = get_json_response_body(response).get();
+	json::value body = get_json_response_body(response);
 	json::value error_body = body[L"error"];
 	error_stream << "Status Code: " << error_body[L"status"] << '\n';
 	error_stream << "Error message: " << error_body[L"message"] << '\n';
@@ -107,7 +107,7 @@ void Client::print_error_message(const http::http_response &response) {
 
 void Client::print_play_error_message(const http::http_response &response) {
 	utility::stringstream_t error_stream;
-	json::value body = get_json_response_body(response).get();
+	json::value body = get_json_response_body(response);
 	json::value error_body = body[L"error"];
 	error_stream << "Status code: " << error_body[L"status"] << '\n';
 	error_stream << "Error message: " << error_body[L"message"] << '\n';

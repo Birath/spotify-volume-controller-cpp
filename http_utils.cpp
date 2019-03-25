@@ -2,10 +2,8 @@
 
 using namespace web;
 
-pplx::task<web::json::value> get_json_response_body(const web::http::http_response & response) {
-	return response.extract_json().then([](web::json::value body) {
-		return body;
-	});
+web::json::value get_json_response_body(const web::http::http_response & response) {
+	return response.extract_json().get();
 	
 }
 
