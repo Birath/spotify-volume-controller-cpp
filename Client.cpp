@@ -3,9 +3,12 @@
 #include "oauth.h"
 const uri Client::BASE_API_URI(L"https://api.spotify.com");
 
-Client::Client(json::value &token_info, const Config &config) : m_token_info(token_info), m_config(config)  {}
+Client::Client(json::value &token_info, const Config &config) : m_token_info(token_info), m_config(config) {
+	client = new http::client::http_client(BASE_API_URI);
+}
 
 Client::~Client () {
+	free(client);
 }
 
 pplx::task<http::http_response> Client::api_request(const utility::string_t & endpoint, const http::method http_method) {
@@ -13,10 +16,7 @@ pplx::task<http::http_response> Client::api_request(const utility::string_t & en
 	request.set_request_uri(endpoint);
 	request.set_method(http_method);
 	authorize_header(request);
-	uri_builder api_uri(BASE_API_URI);
-	http::client::http_client client(api_uri.to_uri());
-
-	return client.request(request).then([](http::http_response response) {
+	return client->request(request).then([](http::http_response response) {
 		return response;
 	});
 }

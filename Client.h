@@ -49,6 +49,7 @@ private:
 	void print_play_error_message(const http::http_response &response);
 
 	json::value m_token_info;
+	http::client::http_client *client;
 	const Config m_config;
 	const utility::string_t ACCESS_TOKEN = L"access_token";
 	static const uri BASE_API_URI;
