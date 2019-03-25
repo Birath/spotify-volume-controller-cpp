@@ -1,9 +1,49 @@
 #include "Config.h"
-
+#include <iostream>
 Config::Config() {
 	utility::ifstream_t config_file("config.json");
 	if (config_file) {
 		config = web::json::value::parse(config_file);
+	}
+	else {
+		using namespace std;
+		using namespace web;
+		cout << "No config file found, creating." << endl;
+		utility::ofstream_t config_file("config.json");
+		utility::string_t input;
+
+		get_user_input(L"Please enter your spotify client id", input, true);
+		config[L"client_id"] = json::value::string(input);
+		
+		get_user_input(L"Please enter your spotify client secret", input, true);
+		config[L"client_secret"] = json::value::string(input);
+
+		get_user_input(L"Enter callback url, or leave empty for default (" + Config::DEFAULT_CALLBACK_URL + L").", input);
+		if (input.empty()) {
+			config[L"rediriect_url"] = json::value::string(Config::DEFAULT_CALLBACK_URL);
+		}
+		else {
+			config[L"rediriect_url"] = json::value::string(input);
+		}
+
+		get_user_input(L"Enter volume up virtual keycode as a number, or leave empty for default", input);
+		if (input.empty()) {
+			config[L"volume_up"] = json::value::string(L"default");
+		}
+		else {
+			config[L"volume_up"] = json::value::string(input);
+		}
+		get_user_input(L"Enter volume down virtual keycode as a number, or leave empty for default", input);
+		if (input.empty()) {
+			config[L"volume_down"] = json::value::string(L"default");
+		}
+		else {
+			config[L"volume_down"] = json::value::string(input);
+		}
+		config[L"print_keys"] = json::value::boolean(false);
+
+		config_file << config.serialize();
+		config_file.close();
 	}
 }
 
@@ -51,6 +91,18 @@ int Config::get_volume_down() const {
 bool Config::is_valid() {
 	return !config.is_null();
 }
+
+void Config::get_user_input(utility::string_t prompt, utility::string_t &input, bool not_empty) const {
+	using namespace std;
+	input.clear();
+	wcout << prompt << endl;
+	getline(wcin, input);
+	while (not_empty && input.empty()) {
+		cout << "Input can't be empty" << endl;
+		getline(wcin, input);
+	}
+}
+
 
 const utility::string_t Config::SCOPES = L"user-read-playback-state user-modify-playback-state";
 

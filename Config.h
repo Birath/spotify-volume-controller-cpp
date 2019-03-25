@@ -22,5 +22,7 @@ public:
 	static const web::uri BASE_AUTHENTICATION_API_URI;
 private:
 	web::json::value config;
+	void get_user_input(utility::string_t prompt, utility::string_t &input, bool not_empty = false) const;
+	const utility::string_t DEFAULT_CALLBACK_URL = L"http://localhost:5000/callback";
 };
 
