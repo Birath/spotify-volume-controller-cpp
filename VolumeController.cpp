@@ -5,9 +5,8 @@
 VolumeController::VolumeController(const Config &config, Client &client) : 
 	m_config(config),
 	m_client(client),
-	// TODO Change to not using errors to set defualt keys??? Why did i ever do this?
-	VOLUME_UP(std::to_string(config.get_volume_up()) == "default" ? VK_VOLUME_UP: config.get_volume_up()),
-	VOLUME_DOWN(std::to_string(config.get_volume_down()) == "default" ? VK_VOLUME_DOWN: config.get_volume_down())
+	VOLUME_UP(config.is_default_up() ? VK_VOLUME_UP: config.get_volume_up()),
+	VOLUME_DOWN(config.is_default_down() ? VK_VOLUME_DOWN: config.get_volume_down())
 {
 	volume = client.get_current_playing_volume();
 }

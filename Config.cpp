@@ -88,6 +88,22 @@ int Config::get_volume_down() const {
 	return v_down.as_integer();
 }
 
+bool Config::is_default_down() const {
+	if (!config.has_field(L"volume_down")) {
+		return false;
+	}
+	web::json::value v_down = config.at(L"volume_down");
+	return v_down.is_string() && v_down.as_string().compare(L"default") == 0;
+}
+
+bool Config::is_default_up() const {
+	if (!config.has_field(L"volume_up")) {
+		return false;
+	}
+	web::json::value v_up = config.at(L"volume_up");
+	return v_up.is_string() && v_up.as_string().compare(L"default") == 0;
+}
+
 bool Config::is_valid() {
 	return !config.is_null();
 }

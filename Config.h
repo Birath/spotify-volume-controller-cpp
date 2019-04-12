@@ -15,6 +15,9 @@ public:
 	utility::string_t get_redirect_url() const;
 	int get_volume_up() const;
 	int get_volume_down() const;
+	bool is_default_down() const;
+	bool is_default_up() const;
+
 	bool should_print_keys() const;
 	bool is_valid();
 
