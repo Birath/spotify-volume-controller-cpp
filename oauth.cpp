@@ -72,7 +72,7 @@ web::json::value get_token(const Config &config) {
 	if (token.is_null()) {
 		std::wcout << "No existing token found, creating new" << std::endl;
 		utility::string_t authorization_code = get_authorization_code(config.get_redirect_url(), config);
-		if (authorization_code == L"") {
+		if (authorization_code.empty()) {
 			return json::value::null();
 		}
 		return get_token(authorization_code, config);
