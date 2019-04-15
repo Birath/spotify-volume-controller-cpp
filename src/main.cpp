@@ -5,8 +5,13 @@
 #include <cpprest/base_uri.h>
 #include "Client.h"
 #include "VolumeController.h"
+#include "updater.h"
 
 int main() {
+
+	//download_release(get_latest_uri());
+	//std::cin.get();
+	//return 0;
 	std::wcout << "Starting..." << '\n';
 	Config config;
 	if (!config.is_valid()) {

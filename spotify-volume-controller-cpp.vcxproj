@@ -69,6 +69,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>Spotify Volume Controller</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>Spotify Volume Controller</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -132,6 +136,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\oauth.cpp" />
     <ClCompile Include="src\SpotifyListener.cpp" />
+    <ClCompile Include="src\updater.cpp" />
     <ClCompile Include="src\VolumeController.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +146,7 @@
     <ClInclude Include="include\key_hooks.h" />
     <ClInclude Include="include\oauth.h" />
     <ClInclude Include="include\SpotifyListener.h" />
+    <ClInclude Include="include\updater.h" />
     <ClInclude Include="include\VolumeController.h" />
   </ItemGroup>
   <ItemGroup>
