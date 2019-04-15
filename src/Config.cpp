@@ -108,6 +108,14 @@ bool Config::is_valid() {
 	return !config.is_null();
 }
 
+bool Config::hide_window() const {
+	if (!config.has_field(L"hide_window")) {
+		return false;
+	}
+
+	return config.at(L"hide_window").as_bool();
+}
+
 void Config::get_user_input(utility::string_t prompt, utility::string_t &input, bool not_empty) const {
 	using namespace std;
 	input.clear();

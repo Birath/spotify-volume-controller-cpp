@@ -20,6 +20,7 @@ public:
 
 	bool should_print_keys() const;
 	bool is_valid();
+	bool hide_window() const;
 
 	static const utility::string_t SCOPES;
 	static const web::uri BASE_AUTHENTICATION_API_URI;

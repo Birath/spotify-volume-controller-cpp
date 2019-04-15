@@ -23,6 +23,9 @@ int main() {
 	Client client(token, config);
 	
 	std::wcout << "Connected to spotify successfully!" << std::endl;
+	if (config.hide_window()) {
+		FreeConsole();
+	}
 	VolumeController controller(config, client);
 	if (config.should_print_keys()) {
 		controller.print_keys();
