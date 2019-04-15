@@ -41,7 +41,7 @@ Config::Config() {
 			config[L"volume_down"] = json::value::string(input);
 		}
 		config[L"print_keys"] = json::value::boolean(false);
-
+		config[L"hide_window"] = json::value::boolean(false);
 		config_file << config.serialize();
 		config_file.close();
 	}

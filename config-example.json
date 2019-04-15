@@ -4,5 +4,6 @@
     "redirect_url": "http://localhost:5000/callback",
 	"volume_up": "default",
 	"volume_down": "default",
-	"print_keys": false
+	"print_keys": false,
+	"hide_window": false
 }
