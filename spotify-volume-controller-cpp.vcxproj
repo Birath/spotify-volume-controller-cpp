@@ -103,13 +103,16 @@
     <ClCompile>
       <PreprocessorDefinitions>_WIN32_WINNT=0x0A00</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(ProjectDir)inlcude;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>_WIN32_WINNT=0x0A00;_NO_ASYNCRTIMP=1</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CompileAsManaged>false</CompileAsManaged>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <DelayLoadDLLs>
@@ -121,23 +124,23 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Client.cpp" />
-    <ClCompile Include="Config.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="http_utils.cpp" />
-    <ClCompile Include="key_hooks.cpp" />
-    <ClCompile Include="SpotifyListener.cpp" />
-    <ClCompile Include="oauth.cpp" />
-    <ClCompile Include="VolumeController.cpp" />
+    <ClCompile Include="src\Client.cpp" />
+    <ClCompile Include="src\Config.cpp" />
+    <ClCompile Include="src\http_utils.cpp" />
+    <ClCompile Include="src\key_hooks.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\oauth.cpp" />
+    <ClCompile Include="src\SpotifyListener.cpp" />
+    <ClCompile Include="src\VolumeController.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Client.h" />
-    <ClInclude Include="Config.h" />
-    <ClInclude Include="key_hooks.h" />
-    <ClInclude Include="http_utils.h" />
-    <ClInclude Include="SpotifyListener.h" />
-    <ClInclude Include="oauth.h" />
-    <ClInclude Include="VolumeController.h" />
+    <ClInclude Include="include\Client.h" />
+    <ClInclude Include="include\Config.h" />
+    <ClInclude Include="include\http_utils.h" />
+    <ClInclude Include="include\key_hooks.h" />
+    <ClInclude Include="include\oauth.h" />
+    <ClInclude Include="include\SpotifyListener.h" />
+    <ClInclude Include="include\VolumeController.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cmake-build-debug\cmakefiles\spotify_volume_controller_cpp.dir\CXX.includecache" />

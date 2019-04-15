@@ -15,51 +15,51 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\Client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SpotifyListener.cpp">
+    <ClCompile Include="src\Config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Config.cpp">
+    <ClCompile Include="src\http_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Client.cpp">
+    <ClCompile Include="src\key_hooks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="oauth.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="http_utils.cpp">
+    <ClCompile Include="src\oauth.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VolumeController.cpp">
+    <ClCompile Include="src\SpotifyListener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="key_hooks.cpp">
+    <ClCompile Include="src\VolumeController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SpotifyListener.h">
+    <ClInclude Include="include\Client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Config.h">
+    <ClInclude Include="include\Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Client.h">
+    <ClInclude Include="include\http_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="oauth.h">
+    <ClInclude Include="include\key_hooks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="http_utils.h">
+    <ClInclude Include="include\oauth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VolumeController.h">
+    <ClInclude Include="include\SpotifyListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="key_hooks.h">
+    <ClInclude Include="include\VolumeController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
