@@ -20,10 +20,10 @@ Config::Config() {
 
 		get_user_input(L"Enter callback url, or leave empty for default (" + Config::DEFAULT_CALLBACK_URL + L").", input);
 		if (input.empty()) {
-			config[L"rediriect_url"] = json::value::string(Config::DEFAULT_CALLBACK_URL);
+			config[L"redirect_url"] = json::value::string(Config::DEFAULT_CALLBACK_URL);
 		}
 		else {
-			config[L"rediriect_url"] = json::value::string(input);
+			config[L"redirect_url"] = json::value::string(input);
 		}
 
 		get_user_input(L"Enter volume up virtual keycode as a number, or leave empty for default", input);
