@@ -5,6 +5,7 @@ CppProperties.json
 debug
 cmake-*
 x64
+vcpkg_installed
 # Ignore config files with secret values!
 .spotifytoken
 config.json
