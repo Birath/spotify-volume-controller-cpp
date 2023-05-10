@@ -2,7 +2,6 @@
 #include "http_utils.h"
 #include "oauth.h"
 
-#include <boost/algorithm/string.hpp>
 const uri Client::BASE_API_URI(L"https://api.spotify.com");
 
 Client::Client(json::value &token_info, const Config &config) : m_token_info(token_info), m_config(config) {
@@ -39,8 +38,6 @@ json::value Client::get_device_info() {
 		utility::stringstream_t error;
 		std::wcout << "Spotify API error:" << std::endl;
 		std::string msg = e.error_code().message();
-		boost::trim(msg);
-		//msg.erase(std::remove_if(msg.begin(), msg.end(), std), msg.end());
 
 		std::cout << msg.length();
 		

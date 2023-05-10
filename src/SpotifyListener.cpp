@@ -1,6 +1,8 @@
 #include "SpotifyListener.h"
+#include <chrono>
+#include <thread>
 
-using namespace boost::asio;
+
 using namespace web;
 using namespace web::http;
 
@@ -19,7 +21,7 @@ SpotifyListener::~SpotifyListener() {
 }
 
 void SpotifyListener::open() {
-	//TODO Maybe change to local refference. See https://stackoverflow.com/a/42029220
+	//TODO Maybe change to local reference. See https://stackoverflow.com/a/42029220
 	m_server.open().wait();
 	closed = false;
 }
@@ -42,7 +44,7 @@ void SpotifyListener::request_handler(http_request &request) {
 
 utility::string_t SpotifyListener::get_authorization_code() {
 	while (m_authorization_code.str() == L"") {
-		Sleep(10);
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 	return m_authorization_code.str();
 }
