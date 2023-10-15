@@ -1,5 +1,9 @@
 #include "Config.h"
 #include <iostream>
+#include <string>
+
+constexpr std::wstring_view VOLUME_INCREMENT_KEY = L"volume_increment";
+
 Config::Config() {
 	utility::ifstream_t config_file("config.json");
 	if (config_file) {
@@ -42,6 +46,9 @@ Config::Config() {
 		}
 		config[L"print_keys"] = json::value::boolean(false);
 		config[L"hide_window"] = json::value::boolean(false);
+
+		config[VOLUME_INCREMENT_KEY.data()] = json::value::number(1);
+
 		config_file << config.serialize();
 		config_file.close();
 	}
@@ -114,6 +121,14 @@ bool Config::hide_window() const {
 	}
 
 	return config.at(L"hide_window").as_bool();
+}
+
+uint32_t Config::volume_increment() const {
+	if (!config.has_field(VOLUME_INCREMENT_KEY.data())) {
+		return 1;
+	}
+
+	return config.at(VOLUME_INCREMENT_KEY.data()).as_number().to_uint32();
 }
 
 void Config::get_user_input(utility::string_t prompt, utility::string_t &input, bool not_empty) const {

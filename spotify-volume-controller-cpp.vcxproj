@@ -112,6 +112,7 @@
     <ClCompile>
       <PreprocessorDefinitions>_WIN32_WINNT=0x0A00</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(ProjectDir)inlcude;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

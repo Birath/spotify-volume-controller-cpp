@@ -15,11 +15,11 @@ LRESULT CALLBACK VolumeCallback(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (wParam == WM_KEYDOWN) {
 		kbdStruct = *((KBDLLHOOKSTRUCT*)lParam);
 		if (kbdStruct.vkCode == m_controller->VOLUME_UP) {
-			m_controller->set_volume(m_controller->get_volume() + 1);
+			m_controller->increase_volume();
 			return 1;
 		}
 		else if (kbdStruct.vkCode == m_controller->VOLUME_DOWN) {
-			m_controller->set_volume(m_controller->get_volume() - 1);
+			m_controller->decrease_volume();
 			return 1;
 		}
 	}
