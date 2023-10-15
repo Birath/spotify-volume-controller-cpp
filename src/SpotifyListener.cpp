@@ -8,7 +8,7 @@ using namespace web::http;
 
 SpotifyListener::SpotifyListener(const uri &address) {
 	m_server = experimental::listener::http_listener(address);
-	m_server.support(std::bind(&SpotifyListener::request_handler, this, std::placeholders::_1));
+	m_server.support([&](http_request request) { request_handler(request); });
 }
 SpotifyListener::SpotifyListener() {
 }
