@@ -14,7 +14,7 @@ web::uri get_latest_uri() {
 	if (response.status_code() == status_codes::OK) {
 		web::json::array releases = get_json_response_body(response).as_array();
 		if (releases[0][L"assets"].is_array())
-			for each (auto asset in releases[0][L"assets"].as_array()) {
+			for (auto&& asset: releases[0][L"assets"].as_array()) {
 				if (asset[L"content_type"].as_string().compare(L"application/x-msdownload") == 0) {
 					return web::uri(asset[L"browser_download_url"].as_string());
 				}

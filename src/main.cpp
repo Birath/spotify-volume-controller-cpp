@@ -8,10 +8,6 @@
 #include "updater.h"
 
 int main() {
-
-	//download_release(get_latest_uri());
-	//std::cin.get();
-	//return 0;
 	std::wcout << "Starting..." << '\n';
 	Config config;
 	if (!config.is_valid()) {
@@ -26,7 +22,7 @@ int main() {
 		return 1;
 	}
 	Client client(token, config);
-	
+
 	std::wcout << "Connected to spotify successfully!" << std::endl;
 	if (config.hide_window()) {
 		FreeConsole();
@@ -38,5 +34,5 @@ int main() {
 	else {
 		controller.start();
 	}
-    return 0;
+	return 0;
 }

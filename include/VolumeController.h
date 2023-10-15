@@ -6,13 +6,14 @@
 class VolumeController
 {
 public:
-	VolumeController(const Config &config, Client &client);
+	VolumeController(const Config& config, Client& client);
 	~VolumeController();
 
 	void set_active_device();
 
-	int get_volume();
-	void set_volume(int new_volume);
+	int get_volume() const;
+	void decrease_volume();
+	void increase_volume();
 
 	Client get_client();
 
@@ -22,12 +23,11 @@ public:
 	const int VOLUME_UP;
 	const int VOLUME_DOWN;
 private:
-	
-	int volume = 0;
+	void set_volume(int new_volume);
+
+	int m_volume = 0;
 	json::value active_device = json::value::Null;
 	const Config m_config;
 	Client m_client;
-	
-
 };
 

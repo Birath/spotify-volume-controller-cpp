@@ -83,7 +83,7 @@ int Client::get_current_playing_volume() {
 	}
 	array devices = device_info[L"devices"].as_array();
 
-	for each (auto device in devices) {
+	for (auto&& device: devices) {
 		if (device[L"is_active"].as_bool()) {
 			// Volume percentage may be null according to documentation
 			if (device[L"volume_percent"].is_integer()) return device[L"volume_percent"].as_integer();
@@ -95,7 +95,7 @@ int Client::get_current_playing_volume() {
 json::value Client::get_desktop_player() {
 	json::array devices = get_device_info()[L"devices"].as_array();
 
-	for each (auto device in devices) {
+	for (auto&& device: devices) {
 		if (device[L"type"].as_string().compare(L"Computer") == 0) return device;
 	}
 	return json::value::Null;
