@@ -11,7 +11,7 @@ int main() {
 	std::wcout << "Starting..." << '\n';
 	Config config;
 	if (!config.is_valid()) {
-		std::wcout << "Failed to read config file." << std::endl;
+		std::cerr << "Failed to read config file." << std::endl;
 		std::cin.get();
 		return 1;
 	}

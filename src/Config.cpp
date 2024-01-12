@@ -4,15 +4,21 @@
 
 constexpr std::wstring_view VOLUME_INCREMENT_KEY = L"volume_increment";
 
+using namespace web;
 Config::Config() {
 	utility::ifstream_t config_file("config.json");
 	if (config_file) {
-		config = web::json::value::parse(config_file);
+		try {
+			config = web::json::value::parse(config_file);
+		}
+		catch (const web::json::json_exception& e) {
+			std::cout << "Invalid config file." << std::endl;
+			std::cerr << e.what() << std::endl;
+			config = web::json::value::null();
+		}
 	}
 	else {
-		using namespace std;
-		using namespace web;
-		cout << "No config file found, creating." << endl;
+		std::cout << "No config file found, creating." << std::endl;
 		utility::ofstream_t config_file("config.json");
 		utility::string_t input;
 
