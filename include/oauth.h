@@ -1,7 +1,7 @@
 #pragma once
-#include "cpprest/oauth2.h"
-#include "cpprest/http_client.h"
-#include "cpprest//http_listener.h"
+#include <cpprest/oauth2.h>
+#include <cpprest/http_client.h>
+#include <cpprest/http_listener.h>
 #include <cpprest/filestream.h>
 
 #include "Config.h"
@@ -18,10 +18,10 @@ void refresh_token(web::json::value &token, const Config &config);
 web::json::value fetch_token(const utility::string_t &code, const utility::string_t &grant_type, const Config &config);
 
 // Saves *token* to a file
-void save_token(const web::json::value &token);
+void save_token(const web::json::value &token, const std::filesystem::path token_directory);
 
 // Returns the token stored on the disk
-web::json::value read_token();
+web::json::value read_token(const std::filesystem::path token_directory);
 
 bool token_is_expired(const web::json::value &token);
 
@@ -35,7 +35,7 @@ web::uri create_authorization_uri(const Config& config);
 web::http::http_request create_token_request(const utility::string_t &authorization_code, const utility::string_t &grant_type, const Config &config);
 
 /// <summary>
-/// Returns a base64 encoded string of the string: <CLIENT_ID:CLIENT_SECRET> 
+/// Returns a base64 encoded string of the string: CLIENT_ID:CLIENT_SECRET
 /// </summary>
 utility::string_t get_authorize_string(const Config &config);
 

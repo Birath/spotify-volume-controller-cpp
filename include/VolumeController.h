@@ -1,5 +1,6 @@
 #pragma once
-#include "windows.h"
+#include <windows.h>
+
 #include "Config.h"
 #include "Client.h"
 

@@ -1,7 +1,6 @@
 #pragma once
 #include <cpprest/http_listener.h>
 
-
 class SpotifyListener {
 public:
 	SpotifyListener(const web::uri &address);

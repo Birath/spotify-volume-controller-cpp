@@ -1,15 +1,34 @@
+#include <argparse/argparse.hpp>
+#include <filesystem>
 #include <iostream>
 // Must be here due to collision with boost
-#include "oauth.h"
-#include "windows.h"
+#include <windows.h>
 #include <cpprest/base_uri.h>
+
+#include "oauth.h"
 #include "Client.h"
 #include "VolumeController.h"
 #include "updater.h"
 
-int main() {
+#ifndef VERSION
+#define VERSION "debug"
+#endif
+
+int main(int argc, char* argv[]) {
+	argparse::ArgumentParser program("spotify_volume_controller", VERSION);
+	program.add_argument("-c", "--config").help("Config file to use. If omitted file in working directory is used");
+	try {
+		program.parse_args(argc, argv);
+	}
+	catch (const std::exception& err) {
+		std::cerr << err.what() << std::endl;
+		std::cerr << program;
+		return 1;
+	}
+
 	std::wcout << "Starting..." << '\n';
-	Config config;
+	
+	Config config = program.is_used("--config") ? Config(program.get("--config")) : Config();
 	if (!config.is_valid()) {
 		std::cerr << "Failed to read config file." << std::endl;
 		std::cin.get();
