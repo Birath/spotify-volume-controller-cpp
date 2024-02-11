@@ -1,7 +1,7 @@
-#include "SpotifyListener.h"
 #include <chrono>
 #include <thread>
 
+#include "SpotifyListener.h"
 
 using namespace web;
 using namespace web::http;

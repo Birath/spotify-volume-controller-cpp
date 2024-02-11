@@ -1,11 +1,13 @@
+#include <cpprest/uri.h>
+#include <cpprest/http_client.h>
+#include <cpprest/json.h>
+#include <cpprest/containerstream.h>
+#include <cpprest/filestream.h>
+#include <cpprest/producerconsumerstream.h>
+
 #include "updater.h"
 #include "http_utils.h"
-#include "cpprest/uri.h"
-#include "cpprest/http_client.h"
-#include "cpprest/json.h"
-#include "cpprest/containerstream.h"
-#include "cpprest/filestream.h"
-#include "cpprest/producerconsumerstream.h"
+
 const web::uri RELEASE_URI(L"https://api.github.com/repos/Birath/spotify-volume-controller-cpp/releases");
 
 web::uri get_latest_uri() {

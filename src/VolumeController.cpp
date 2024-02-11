@@ -1,6 +1,7 @@
+#include <string>
+
 #include "VolumeController.h"
 #include "key_hooks.h"
-#include "string"
 
 VolumeController::VolumeController(const Config &config, Client &client) : 
 	m_config(config),

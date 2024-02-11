@@ -1,12 +1,23 @@
-#include "Config.h"
 #include <iostream>
 #include <string>
+
+#include "Config.h"
 
 constexpr std::wstring_view VOLUME_INCREMENT_KEY = L"volume_increment";
 
 using namespace web;
 Config::Config() {
-	utility::ifstream_t config_file("config.json");
+	parse_config_file("config.json");
+}
+
+Config::Config(std::string path) {
+	parse_config_file(path);
+}
+
+void Config::parse_config_file(std::string const& path)
+{
+	utility::ifstream_t config_file(path);
+	directory = std::filesystem::absolute(path).parent_path();
 	if (config_file) {
 		try {
 			config = web::json::value::parse(config_file);
@@ -24,7 +35,7 @@ Config::Config() {
 
 		get_user_input(L"Please enter your spotify client id", input, true);
 		config[L"client_id"] = json::value::string(input);
-		
+
 		get_user_input(L"Please enter your spotify client secret", input, true);
 		config[L"client_secret"] = json::value::string(input);
 
@@ -59,6 +70,8 @@ Config::Config() {
 		config_file.close();
 	}
 }
+
+
 
 Config::~Config() {
 }
@@ -127,6 +140,10 @@ bool Config::hide_window() const {
 	}
 
 	return config.at(L"hide_window").as_bool();
+}
+
+[[nodiscard]] std::filesystem::path Config::config_directory() const {
+	return directory;
 }
 
 uint32_t Config::volume_increment() const {

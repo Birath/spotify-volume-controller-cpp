@@ -62,13 +62,13 @@ web::json::value get_token(const utility::string_t &authorization_code, const Co
 	auto expiration_time = std::chrono::system_clock::now().time_since_epoch();
 	expiration_time += std::chrono::seconds(token[L"expires_in"].as_integer());
 	token[L"expires_at"] = expiration_time.count();
-	save_token(token);
+	save_token(token, config.config_directory());
 	return token;
 }
 
 web::json::value get_token(const Config &config) {
 	std::wcout << "Getting authorization token..." << std::endl;
-	web::json::value token = read_token();
+	web::json::value token = read_token(config.config_directory());
 	if (token.is_null()) {
 		std::wcout << "No existing token found, creating new" << std::endl;
 		utility::string_t authorization_code = get_authorization_code(config.get_redirect_url(), config);
@@ -105,11 +105,11 @@ void refresh_token(web::json::value & token, const Config &config) {
 	auto expiration_time = std::chrono::system_clock::now().time_since_epoch();
 	expiration_time += std::chrono::seconds(token[L"expires_in"].as_integer());
 	token[L"expires_at"] = expiration_time.count();
-	save_token(token);
+	save_token(token, config.config_directory());
 }
 
-void save_token(const web::json::value & token) {
-	std::ofstream token_file(TOKEN_FILE_NAME);
+void save_token(const web::json::value & token, const std::filesystem::path token_directory) {
+	std::ofstream token_file(token_directory / TOKEN_FILE_NAME);
 	if (token_file) {
 		token.serialize(token_file);
 		token_file.close();
@@ -119,8 +119,8 @@ void save_token(const web::json::value & token) {
 	}
 }
 
-web::json::value read_token() {
-	utility::ifstream_t token_file(TOKEN_FILE_NAME);
+web::json::value read_token(const std::filesystem::path token_directory) {
+	utility::ifstream_t token_file(token_directory / TOKEN_FILE_NAME);
 	
 	if (token_file) {
 		web::json::value token = json::value::parse(token_file);
@@ -163,7 +163,10 @@ http::http_request create_token_request(const utility::string_t &authorization_c
 utility::string_t get_authorize_string(const Config &config) {
 	utility::string_t unencoded;
 	unencoded.append(config.get_client_id() + L":" + config.get_client_secret());
-	std::vector<unsigned char> byte_vector(unencoded.begin(), unencoded.end());
+	using convert_type = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_type, wchar_t> converter;
+	std::string bytes = converter.to_bytes(unencoded);
+	std::vector<unsigned char> byte_vector(bytes.begin(), bytes.end());
 	return utility::conversions::to_base64(byte_vector);
 }
 

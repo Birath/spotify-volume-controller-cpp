@@ -3,6 +3,7 @@
     "version-string": "1.1.4",
     "port-version": 1,
     "dependencies": [
-      "cpprestsdk"
+      "cpprestsdk",
+      "argparse"
     ]
 }
