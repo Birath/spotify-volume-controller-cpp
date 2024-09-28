@@ -44,14 +44,17 @@ target_link_libraries(spotify_volume_controller_lib PRIVATE cpprestsdk::cpprest)
 
 add_executable(spotify_volume_controller_exe 
   source/main.cpp
+  resources/config-example.json
 )
 add_executable(spotify_volume_controller::exe ALIAS spotify_volume_controller_exe)
 
 
 set_property(TARGET spotify_volume_controller_exe PROPERTY OUTPUT_NAME spotify_volume_controller)
+set_property(TARGET spotify_volume_controller_exe PROPERTY RESOURCE resources/config-example.json)
 
 target_compile_features(spotify_volume_controller_exe PRIVATE cxx_std_20)
 target_compile_definitions(spotify_volume_controller_exe PRIVATE _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS=1)
+target_compile_definitions(spotify_volume_controller_exe PRIVATE VERSION="${PROJECT_VERSION}")
 target_link_libraries(spotify_volume_controller_exe PRIVATE spotify_volume_controller_lib  argparse::argparse cpprestsdk::cpprest)
 # ---- Install rules ----
 
@@ -71,3 +74,9 @@ elseif(NOT PROJECT_IS_TOP_LEVEL)
 endif()
 
 include(cmake/dev-mode.cmake)
+add_custom_command(
+  TARGET spotify_volume_controller_exe POST_BUILD
+  COMMAND "${CMAKE_COMMAND}" -E copy
+  ${CMAKE_SOURCE_DIR}/resources/config-example.json
+  "$<TARGET_FILE_DIR:spotify_volume_controller_exe>/config-example.json"
+)
