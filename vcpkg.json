@@ -1,9 +1,25 @@
 {
-    "name": "spotify-volume-controller",
-    "version-string": "1.1.4",
-    "port-version": 1,
-    "dependencies": [
-      "cpprestsdk",
-      "argparse"
-    ]
+  "name": "spotify-volume-controller",
+  "version-semver": "0.1.7",
+  "dependencies": [
+    {
+      "name": "fmt",
+      "version>=": "10.1.0"
+    },
+    "cpprestsdk",
+    "argparse"
+  ],
+  "default-features": [],
+  "features": {
+    "test": {
+      "description": "Dependencies for testing",
+      "dependencies": [
+        {
+          "name": "catch2",
+          "version>=": "3.4.0"
+        }
+      ]
+    }
+  },
+  "builtin-baseline": "16ee2ecb31788c336ace8bb14c21801efb6836e4"
 }
