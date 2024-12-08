@@ -7,7 +7,9 @@
       "version>=": "10.1.0"
     },
     "cpprestsdk",
-    "argparse"
+    "cpr",
+    "argparse",
+    "nlohmann-json"
   ],
   "default-features": [],
   "features": {

@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include <argparse/argparse.hpp>
+#include <fmt/core.h>
 // Must be here due to collision with boost
 #include <cpprest/base_uri.h>
 

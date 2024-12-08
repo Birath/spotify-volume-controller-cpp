@@ -15,6 +15,9 @@ include(cmake/variables.cmake)
 
 find_package(cpprestsdk REQUIRED)
 find_package(argparse CONFIG REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(fmt REQUIRED)
+find_package(cpr REQUIRED)
 
 # ---- Declare library ----
 
@@ -38,7 +41,9 @@ target_include_directories(
 
 target_compile_features(spotify_volume_controller_lib PUBLIC cxx_std_20)
 target_compile_definitions(spotify_volume_controller_lib PRIVATE _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS=1)
-target_link_libraries(spotify_volume_controller_lib PRIVATE cpprestsdk::cpprest)
+target_link_libraries(spotify_volume_controller_lib PRIVATE cpprestsdk::cpprest nlohmann_json::nlohmann_json fmt::fmt cpr::cpr)
+
+set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
 
 # ---- Declare executable ----
 

@@ -1,140 +1,138 @@
+#include <codecvt>
+
 #include "Client.h"
+
+#include <cpr/cpr.h>
+#include <fmt/format.h>
+#include <nlohmann/json.hpp>
 
 #include "http_utils.h"
 #include "oauth.h"
+
+// for convenience
+using json = nlohmann::json;
 namespace spotify_volume_controller
 {
 
-const web::uri Client::BASE_API_URI(L"https://api.spotify.com");
+constexpr std::string_view API_URL {"https://api.spotify.com"};
 
 Client::Client(web::json::value& token_info, const Config& config)
     : m_token_info(token_info)
     , m_config(config)
 {
-  client = new web::http::client::http_client(BASE_API_URI);
+  // client = new web::http::client::http_client(BASE_API_URI);
 }
 
-Client::~Client()
+cpr::Response Client::api_request(const std::string_view endpoint, const web::http::method http_method)
 {
-  free(client);
+  cpr::Url url {fmt::format("{}{}", API_URL, endpoint)};
+
+  return cpr::Get(url, cpr::Bearer {get_token()});
 }
 
-web::http::http_response Client::api_request(const utility::string_t& endpoint, const web::http::method http_method)
+[[nodiscard]] cpr::Response Client::put_api_request(const std::string_view endpoint, const cpr::Payload& payload)
 {
-  web::http::http_request request;
-  request.set_request_uri(endpoint);
-  request.set_method(http_method);
-  authorize_header(request);
-  return client->request(request).get();
+  cpr::Url url {fmt::format("{}{}", API_URL, endpoint)};
+  return cpr::Put(url, payload, cpr::Bearer {get_token()});
 }
 
-web::http::http_response Client::api_request(const utility::string_t& endpoint,
-                                             const web::http::method http_method,
-                                             const utility::string_t& query)
-{
-  web::uri_builder api_uri(BASE_API_URI);
-  api_uri.append_path(endpoint);
-  api_uri.append_query(query, true);
-
-  return api_request(api_uri.to_string(), http_method);
-}
-
-std::optional<web::json::array> Client::get_devices()
+[[nodiscard]] std::optional<json> Client::get_devices()
 {
   try {
-    web::http::http_response response = api_request(L"/v1/me/player/devices", web::http::methods::GET);
-    if (response.status_code() != web::http::status_codes::OK) {
+    cpr::Response response = api_request("/v1/me/player/devices", web::http::methods::GET);
+    if (response.status_code != cpr::status::HTTP_OK) {
       print_error_message(response);
       return {};
     }
-    return get_json_response_body(response).at(L"devices").as_array();
+    json response_body = json::parse(response.text);
+    return response_body.at("devices");
   } catch (web::http::http_exception e) {
-    std::wcout << "Spotify API error:" << std::endl;
+    std::cout << "Spotify API error:" << std::endl;
     std::cout << e.error_code().message() << std::endl;
 
     return {};
   }
 }
 
-std::optional<volume> Client::get_device_volume(const utility::string_t& id)
+[[nodiscard]] std::optional<volume> Client::get_device_volume(const std::string_view id)
 {
-  std::optional<web::json::array> devices = get_devices();
+  std::optional<json> devices = get_devices();
   if (!devices.has_value())
     return {};
 
   for (auto&& device : devices.value()) {
-    if (device.has_string_field(L"id") && id == device[L"id"].as_string()) {
-      return device.has_integer_field(L"volume_percent") ? device[L"volume_percent"].as_number().to_uint32()
-                                                         : std::optional<volume> {};
+    if (device.contains("id") && id == device.at("id").template get<std::string>()) {
+      return device.contains("volume_percent") ? device["volume_percent"].template get<std::uint32_t>()
+                                               : std::optional<volume> {};
     }
   }
   return {};
 }
 
-[[nodiscard]] web::http::http_response Client::set_device_volume(volume volume, const utility::string_t& device_id)
+[[nodiscard]] cpr::Response Client::set_device_volume(volume volume, const std::string& device_id)
 {
-  utility::stringstream_t query;
-  query << "volume_percent=" << volume;
+  cpr::Parameters payload {{"volume_percent", fmt::format("{}", volume.m_volume)}};
   if (!device_id.empty()) {
-    query << "&";
-    query << "device_id=" << device_id;
+    payload.Add(cpr::Parameter {"device_id", device_id});
   }
-
-  return api_request(L"/v1/me/player/volume", web::http::methods::PUT, query.str());
+  cpr::Url url {fmt::format("{}/{}", API_URL, "v1/me/player/volume")};
+  return cpr::Put(url, payload, cpr::Bearer{get_token()}, cpr::Header{{"Content-Length", "0"}});
 }
 
-[[nodiscard]] web::http::http_response Client::set_volume(volume volume)
+[[nodiscard]] cpr::Response Client::set_volume(volume volume)
 {
   return set_device_volume(volume);
 }
 
 std::optional<volume> Client::get_current_playing_volume()
 {
-  std::optional<web::json::array> devices = get_devices();
+  std::optional<json> devices = get_devices();
   if (!devices.has_value())
     return {};
 
   for (auto&& device : devices.value()) {
-    if (device[L"is_active"].as_bool()) {
+    if (device.at("is_active").template get<bool>()) {
       // Volume percentage may be null according to documentation
-      if (device[L"volume_percent"].is_integer())
-        return device[L"volume_percent"].as_number().to_uint32();
+      if (device["volume_percent"].is_number_integer())
+        return device["volume_percent"].template get<std::uint32_t>();
     }
   }
   return {};
 }
 
-web::json::value Client::get_desktop_player()
+[[nodiscard]] std::optional<std::string> Client::get_desktop_player_id()
 {
-  std::optional<web::json::array> devices = get_devices();
+  std::optional<json> devices = get_devices();
   if (!devices.has_value())
     return {};
 
   for (auto&& device : devices.value()) {
-    if (device[L"type"].as_string().compare(L"Computer") == 0)
-      return device;
+    if (device["type"].template get<std::string>() == "Computer")
+      return device.at("id").template get<std::string>();
   }
-  return web::json::value::Null;
+  return {};
 }
 
-void Client::authorize_header(web::http::http_request request)
+[[nodiscard]] std::string Client::get_token()
 {
   if (oauth::token_is_expired(m_token_info)) {
     oauth::refresh_token(m_token_info, m_config);
   }
-  request.headers()[L"Authorization"] = L"Bearer " + m_token_info[ACCESS_TOKEN].as_string();
+
+  return convert_to_string(m_token_info[ACCESS_TOKEN].as_string());
 }
 
-void Client::print_error_message(const web::http::http_response& response)
+void Client::print_error_message(const cpr::Response& response) const
 {
-  web::json::value body = get_json_response_body(response);
-  web::json::value error_body = body[L"error"];
-  std::wcerr << "Status code: " << error_body[L"status"] << '\n';
-  std::wcerr << "Error message: " << error_body[L"message"] << '\n';
-  if (error_body.has_string_field(L"reason")) {
-    std::wcerr << "Reason: " << error_body[L"reason"];
-  }
-  std::wcerr << std::endl;
+  // web::json::value body = get_json_response_body(response.text);
+  // web::json::value error_body = body[L"error"];
+  // std::cerr << "Status code: " << response.error.code << '\n';
+
+  std::cerr << "Error message: " << response.error.message << '\n';
+  // if (error_body.has_string_field(L"reason")) {
+  std::cerr << "Reason: " << response.reason;
+  // }
+  std::cerr << std::endl;
 }
 
 }  // namespace spotify_volume_controller
