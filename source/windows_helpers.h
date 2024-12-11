@@ -9,4 +9,6 @@ namespace spotify_volume_controller::windows
 
 [[nodiscard]] std::string wide_string_to_string(const std::wstring& wide_string);
 
+[[nodiscard]] std::wstring string_to_wide_string(const std::string &str);
+
 }

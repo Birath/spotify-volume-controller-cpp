@@ -1,4 +1,5 @@
 #include <codecvt>
+#include <iostream>
 
 #include "Client.h"
 
@@ -6,7 +7,6 @@
 #include <fmt/format.h>
 #include <nlohmann/json.hpp>
 
-#include "http_utils.h"
 #include "oauth.h"
 
 // for convenience
@@ -16,14 +16,13 @@ namespace spotify_volume_controller
 
 constexpr std::string_view API_URL {"https://api.spotify.com"};
 
-Client::Client(web::json::value& token_info, const Config& config)
+Client::Client(token_t token_info, const Config& config)
     : m_token_info(token_info)
     , m_config(config)
 {
-  // client = new web::http::client::http_client(BASE_API_URI);
 }
 
-cpr::Response Client::api_request(const std::string_view endpoint, const web::http::method http_method)
+[[nodiscard]] cpr::Response Client::api_request(const std::string_view endpoint)
 {
   cpr::Url url {fmt::format("{}{}", API_URL, endpoint)};
 
@@ -38,20 +37,13 @@ cpr::Response Client::api_request(const std::string_view endpoint, const web::ht
 
 [[nodiscard]] std::optional<json> Client::get_devices()
 {
-  try {
-    cpr::Response response = api_request("/v1/me/player/devices", web::http::methods::GET);
-    if (response.status_code != cpr::status::HTTP_OK) {
-      print_error_message(response);
-      return {};
-    }
-    json response_body = json::parse(response.text);
-    return response_body.at("devices");
-  } catch (web::http::http_exception e) {
-    std::cout << "Spotify API error:" << std::endl;
-    std::cout << e.error_code().message() << std::endl;
-
+  cpr::Response response = api_request("/v1/me/player/devices");
+  if (response.status_code != cpr::status::HTTP_OK) {
+    print_error_message(response);
     return {};
   }
+  json response_body = json::parse(response.text);
+  return response_body.at("devices");
 }
 
 [[nodiscard]] std::optional<volume> Client::get_device_volume(const std::string_view id)
@@ -76,7 +68,7 @@ cpr::Response Client::api_request(const std::string_view endpoint, const web::ht
     payload.Add(cpr::Parameter {"device_id", device_id});
   }
   cpr::Url url {fmt::format("{}/{}", API_URL, "v1/me/player/volume")};
-  return cpr::Put(url, payload, cpr::Bearer{get_token()}, cpr::Header{{"Content-Length", "0"}});
+  return cpr::Put(url, payload, cpr::Bearer {get_token()}, cpr::Header {{"Content-Length", "0"}});
 }
 
 [[nodiscard]] cpr::Response Client::set_volume(volume volume)
@@ -116,10 +108,10 @@ std::optional<volume> Client::get_current_playing_volume()
 [[nodiscard]] std::string Client::get_token()
 {
   if (oauth::token_is_expired(m_token_info)) {
-    oauth::refresh_token(m_token_info, m_config);
+    m_token_info = oauth::refresh_token(m_token_info, m_config);
   }
 
-  return convert_to_string(m_token_info[ACCESS_TOKEN].as_string());
+  return m_token_info.access_token;
 }
 
 void Client::print_error_message(const cpr::Response& response) const

@@ -8,15 +8,17 @@
 #include <cpprest/http_listener.h>
 #include <cpprest/http_msg.h>
 
+#include "windows_helpers.h"
+
 using namespace web;
 using namespace web::http;
 
 namespace spotify_volume_controller
 {
 
-SpotifyListener::SpotifyListener(const uri& address)
+SpotifyListener::SpotifyListener(const std::string& address)
 {
-  m_server = experimental::listener::http_listener(address);
+  m_server = experimental::listener::http_listener(web::uri {windows::string_to_wide_string(address)});
   m_server.support([&](http_request request) { request_handler(request); });
 }
 SpotifyListener::SpotifyListener() = default;

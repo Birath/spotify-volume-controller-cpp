@@ -6,7 +6,7 @@ namespace spotify_volume_controller
 class SpotifyListener
 {
 public:
-  SpotifyListener(const web::uri& address);
+  SpotifyListener(const std::string& address);
   SpotifyListener();
   ~SpotifyListener();
 

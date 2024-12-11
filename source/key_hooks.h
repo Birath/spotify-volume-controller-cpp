@@ -1,10 +1,12 @@
 #pragma once
-#include "windows_helpers.h"
+#include <iostream>
+
 #include <windef.h>
 #include <winuser.h>
 
 #include "Client.h"
 #include "VolumeController.h"
+#include "windows_helpers.h"
 namespace spotify_volume_controller::key_hooks
 {
 

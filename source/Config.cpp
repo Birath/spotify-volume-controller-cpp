@@ -1,11 +1,13 @@
+#include <fstream>
 #include <iostream>
 #include <string>
 
 #include "Config.h"
 
-constexpr std::wstring_view VOLUME_INCREMENT_KEY = L"volume_increment";
+#include <fmt/format.h>
 
-using namespace web;
+constexpr std::string_view VOLUME_INCREMENT_KEY = "volume_increment";
+
 namespace spotify_volume_controller
 {
 
@@ -19,131 +21,132 @@ Config::Config(const std::string& path)
   parse_config_file(path);
 }
 
-void Config::parse_config_file(const std::string& path)
+void Config::parse_config_file(const std::filesystem::path& path)
 {
-  utility::ifstream_t config_file(path);
+  std::ifstream config_file(path);
   directory = std::filesystem::absolute(path).parent_path();
   if (config_file) {
     try {
-      config = web::json::value::parse(config_file);
-    } catch (const web::json::json_exception& e) {
+      config = json::parse(config_file);
+    } catch (const json::exception& e) {
       std::cout << "Invalid config file." << std::endl;
       std::cerr << e.what() << std::endl;
-      config = web::json::value::null();
+      config = json {};
     }
     return;
   }
   std::cout << "No config file found, creating." << std::endl;
-  utility::ofstream_t new_config_file(directory / "config.json");
-  utility::string_t input;
+  std::ofstream new_config_file(directory / "config.json");
+  std::string input {};
 
-  get_user_input(L"Please enter your spotify client id", input, true);
-  config[L"client_id"] = json::value::string(input);
+  get_user_input("Please enter your spotify client id", input, true);
+  config["client_id"] = input;
 
-  get_user_input(L"Please enter your spotify client secret", input, true);
-  config[L"client_secret"] = json::value::string(input);
+  get_user_input("Please enter your spotify client secret", input, true);
+  config["client_secret"] = input;
 
-  get_user_input(L"Enter callback url, or leave empty for default (" + Config::DEFAULT_CALLBACK_URL + L").", input);
+  get_user_input(fmt::format("Enter callback url, or leave empty for default ({}).", Config::DEFAULT_CALLBACK_URL),
+                 input);
   if (input.empty()) {
-    config[L"redirect_url"] = json::value::string(Config::DEFAULT_CALLBACK_URL);
+    config["redirect_url"] = Config::DEFAULT_CALLBACK_URL;
   } else {
-    config[L"redirect_url"] = json::value::string(input);
+    config["redirect_url"] = input;
   }
 
-  get_user_input(L"Enter volume up virtual keycode as a number, or leave empty for default", input);
+  get_user_input("Enter volume up virtual keycode as a number, or leave empty for default", input);
   if (input.empty()) {
-    config[L"volume_up"] = json::value::string(L"default");
+    config["volume_up"] = "default";
   } else {
-    config[L"volume_up"] = json::value::string(input);
+    config["volume_up"] = input;
   }
-  get_user_input(L"Enter volume down virtual keycode as a number, or leave empty for default", input);
+  get_user_input("Enter volume down virtual keycode as a number, or leave empty for default", input);
   if (input.empty()) {
-    config[L"volume_down"] = json::value::string(L"default");
+    config["volume_down"] = "default";
   } else {
-    config[L"volume_down"] = json::value::string(input);
+    config["volume_down"] = input;
   }
-  config[L"print_keys"] = json::value::boolean(false);
-  config[L"hide_window"] = json::value::boolean(false);
+  config["print_keys"] = false;
+  config["hide_window"] = false;
 
-  config[VOLUME_INCREMENT_KEY.data()] = json::value::number(1);
+  config[VOLUME_INCREMENT_KEY.data()] = 1;
 
-  new_config_file << config.serialize();
+  new_config_file << config;
   new_config_file.close();
 }
 
-utility::string_t Config::get_client_id() const
+std::string Config::get_client_id() const
 {
-  return config.at(L"client_id").as_string();
+  return config.at("client_id").template get<std::string>();
 }
-utility::string_t Config::get_client_secret() const
+std::string Config::get_client_secret() const
 {
-  return config.at(L"client_secret").as_string();
+  return config.at("client_secret").template get<std::string>();
 }
-utility::string_t Config::get_redirect_url() const
+std::string Config::get_redirect_url() const
 {
-  return config.at(L"redirect_url").as_string();
+  return config.at("redirect_url").template get<std::string>();
 }
 
 bool Config::should_print_keys() const
 {
-  return config.at(L"print_keys").as_bool();
+  return config.at("print_keys").template get<bool>();
 }
 
 keycode Config::get_volume_up() const
 {
-  if (!config.has_field(L"volume_up")) {
+  if (!config.contains("volume_up")) {
     throw std::runtime_error("Missing volume_up config");
   }
-  web::json::value v_up = config.at(L"volume_up");
-  if (!v_up.is_integer()) {
+  json v_up = config.at("volume_up");
+  if (!v_up.is_number_integer()) {
     throw std::runtime_error("volume_up config is not a valid keycode");
   }
-  return v_up.as_number().to_uint32();
+  return v_up.template get<keycode>();
 }
 
 keycode Config::get_volume_down() const
 {
-  if (!config.has_field(L"volume_down")) {
+  if (!config.contains("volume_down")) {
     throw std::runtime_error("Missing volume_down config");
   }
-  web::json::value v_down = config.at(L"volume_down");
+  json v_down = config.at("volume_down");
 
-  if (!v_down.is_integer()) {
+  if (!v_down.is_number_integer()) {
     throw std::runtime_error("volume_down config is not a valid keycode");
   }
-  return v_down.as_number().to_uint32();
+  return v_down.template get<keycode>();
 }
 
 bool Config::is_default_down() const
 {
-  if (!config.has_field(L"volume_down")) {
+  if (!config.contains("volume_down")) {
     return false;
   }
-  web::json::value v_down = config.at(L"volume_down");
-  return v_down.is_string() && v_down.as_string().compare(L"default") == 0;
+  json v_down = config.at("volume_down");
+  return v_down.is_string() && v_down.template get<std::string>() == "default";
 }
 
 bool Config::is_default_up() const
 {
-  if (!config.has_field(L"volume_up")) {
+  if (!config.contains("volume_up")) {
     return false;
   }
-  web::json::value v_up = config.at(L"volume_up");
-  return v_up.is_string() && v_up.as_string().compare(L"default") == 0;
+  json v_up = config.at("volume_up");
+  return v_up.is_string() && v_up.template get<std::string>() == "default";
 }
 
-bool Config::is_valid()
+bool Config::is_valid() const
 {
   return !config.is_null();
 }
 
 bool Config::hide_window() const
 {
-  if (!config.has_field(L"hide_window")) {
+  if (!config.contains("hide_window")) {
     return false;
   }
 
-  return config.at(L"hide_window").as_bool();
+  return config.at("hide_window").template get<bool>();
 }
 
 [[nodiscard]] std::filesystem::path Config::config_directory() const
@@ -153,26 +156,22 @@ bool Config::hide_window() const
 
 volume Config::volume_increment() const
 {
-  if (!config.has_field(VOLUME_INCREMENT_KEY.data())) {
+  if (!config.contains(VOLUME_INCREMENT_KEY.data())) {
     return 1;
   }
 
-  return config.at(VOLUME_INCREMENT_KEY.data()).as_number().to_uint32();
+  return config.at(VOLUME_INCREMENT_KEY.data()).template get<volume_t>();
 }
 
-void Config::get_user_input(utility::string_t prompt, utility::string_t& input, bool not_empty) const
+void Config::get_user_input(const std::string_view prompt, std::string& input, bool not_empty) const
 {
   input.clear();
-  std::wcout << prompt << std::endl;
-  std::getline(std::wcin, input);
+  std::cout << prompt << std::endl;
+  std::getline(std::cin, input);
   while (not_empty && input.empty()) {
     std::cout << "Input can't be empty" << std::endl;
-    std::getline(std::wcin, input);
+    std::getline(std::cin, input);
   }
 }
-
-const utility::string_t Config::SCOPES = L"user-read-playback-state user-modify-playback-state";
-
-const web::uri Config::BASE_AUTHENTICATION_API_URI(L"https://accounts.spotify.com/api/");
 
 }  // namespace spotify_volume_controller

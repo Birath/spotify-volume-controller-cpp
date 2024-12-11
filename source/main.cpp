@@ -38,13 +38,13 @@ int main(int argc, char* argv[])
     std::cin.get();
     return 1;
   }
-  web::json::value token = spotify_volume_controller::oauth::get_token(config);
-  if (token.is_null()) {
+  std::optional<spotify_volume_controller::token_t> token = spotify_volume_controller::oauth::get_token(config);
+  if (!token.has_value()) {
     std::wcout << "Failed to connect to spotify, exiting..." << std::endl;
     std::cin.get();
     return 1;
   }
-  spotify_volume_controller::Client client(token, config);
+  spotify_volume_controller::Client client(token.value(), config);
 
   std::wcout << "Connected to spotify successfully!" << std::endl;
   if (config.hide_window()) {

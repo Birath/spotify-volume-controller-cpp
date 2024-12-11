@@ -32,4 +32,15 @@ namespace spotify_volume_controller::windows
                       nullptr);
   return result;
 }
+
+// https://gist.github.com/rosasurfer/33f0beb4b10ff8a8c53d943116f8a872
+[[nodiscard]] std::wstring string_to_wide_string(const std::string &str)
+{
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+	std::wstring w_str(size_needed, 0);
+	MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &w_str[0], size_needed);
+	return w_str;
+}
+
+
 }  // namespace spotify_volume_controller::windows
