@@ -1,10 +1,12 @@
 #pragma once
-#include "windows_helpers.h"
+#include <iostream>
+
 #include <windef.h>
 #include <winuser.h>
 
 #include "Client.h"
 #include "VolumeController.h"
+#include "windows_helpers.h"
 namespace spotify_volume_controller::key_hooks
 {
 
@@ -38,7 +40,7 @@ LRESULT CALLBACK PrintVKey(int nCode, WPARAM wParam, LPARAM lParam)
   }
   if (wParam == WM_KEYDOWN) {
     kbdStruct = *((KBDLLHOOKSTRUCT*)lParam);
-    std::wcout << kbdStruct.vkCode << std::endl;
+    std::cout << kbdStruct.vkCode << std::endl;
   }
   return CallNextHookEx(_hook, nCode, wParam, lParam);
 }

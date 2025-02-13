@@ -2,13 +2,11 @@
 #include <iostream>
 
 #include <argparse/argparse.hpp>
-// Must be here due to collision with boost
-#include <cpprest/base_uri.h>
+#include <fmt/core.h>
 
 #include "Client.h"
 #include "VolumeController.h"
 #include "oauth.h"
-#include "updater.h"
 #include "windows_helpers.h"
 
 #ifndef VERSION
@@ -27,7 +25,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  std::wcout << "Starting..." << '\n';
+  std::cout << "Starting..." << '\n';
 
   spotify_volume_controller::Config config = program.is_used("--config")
       ? spotify_volume_controller::Config(program.get("--config"))
@@ -37,15 +35,15 @@ int main(int argc, char* argv[])
     std::cin.get();
     return 1;
   }
-  web::json::value token = spotify_volume_controller::oauth::get_token(config);
-  if (token.is_null()) {
-    std::wcout << "Failed to connect to spotify, exiting..." << std::endl;
+  std::optional<spotify_volume_controller::token_t> token = spotify_volume_controller::oauth::get_token(config);
+  if (!token.has_value()) {
+    std::cout << "Failed to connect to spotify, exiting..." << std::endl;
     std::cin.get();
     return 1;
   }
-  spotify_volume_controller::Client client(token, config);
+  spotify_volume_controller::Client client(token.value(), config);
 
-  std::wcout << "Connected to spotify successfully!" << std::endl;
+  std::cout << "Connected to spotify successfully!" << std::endl;
   if (config.hide_window()) {
     FreeConsole();
   }

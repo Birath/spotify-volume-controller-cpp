@@ -2,7 +2,11 @@
 
 #include "VolumeController.h"
 
+#include <nlohmann/json.hpp>
+
 #include "key_hooks.h"
+// for convenience
+using json = nlohmann::json;
 namespace spotify_volume_controller
 {
 
@@ -18,12 +22,11 @@ VolumeController::~VolumeController() {}
 
 void VolumeController::set_desktop_device()
 {
-  web::json::value desktop = m_client.get_desktop_player();
-  if (desktop == web::json::value::Null)
+  std::optional<std::string> desktop = m_client.get_desktop_player_id();
+  if (!desktop.has_value()) {
     return;
-  if (desktop.has_string_field(L"id")) {
-    m_desktop_device_id = desktop.at(L"id").as_string();
   }
+  m_desktop_device_id = desktop;
 }
 
 [[nodiscard]] volume VolumeController::get_volume() const
@@ -51,17 +54,16 @@ void VolumeController::set_volume(const volume to_volume)
     }
   }
 
-  web::http::http_response result = m_client.set_volume(new_volume);
-  if (result.status_code() == web::http::status_codes::NoContent) {
+  cpr::Response result = m_client.set_volume(new_volume);
+  if (result.status_code == cpr::status::HTTP_NO_CONTENT) {
     m_volume = new_volume;
     return;
-  } else if ((result.status_code() == web::http::status_codes::NotFound
-              || result.status_code() == web::http::status_codes::Forbidden)
+  } else if ((result.status_code == cpr::status::HTTP_NOT_FOUND || result.status_code == cpr::status::HTTP_FORBIDDEN || cpr::status::HTTP_LENGTH_REQUIRED)
              && m_desktop_device_id.has_value())
   {
     result = m_client.set_device_volume(new_volume, m_desktop_device_id.value());
   }
-  if (result.status_code() == web::http::status_codes::NoContent) {
+  if (result.status_code == cpr::status::HTTP_NO_CONTENT) {
     m_volume = new_volume;
     return;
   }

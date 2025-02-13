@@ -29,7 +29,7 @@ private:
   Client m_client;
   const keycode m_volume_up_keycode;
   const keycode m_volume_down_keycode;
-  std::optional<utility::string_t> m_desktop_device_id = {};
+  std::optional<std::string> m_desktop_device_id = {};
 };
 
 }  // namespace spotify_volume_controller

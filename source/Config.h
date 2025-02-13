@@ -1,11 +1,12 @@
 #pragma once
 #include <filesystem>
 
-#include <cpprest/json.h>
-#include <cpprest/uri.h>
+#include <nlohmann/json.hpp>
 
 #include "data_types.h"
 
+// for convenience
+using json = nlohmann::json;
 namespace spotify_volume_controller
 {
 
@@ -17,9 +18,9 @@ public:
 
   ~Config() = default;
 
-  utility::string_t get_client_id() const;
-  utility::string_t get_client_secret() const;
-  utility::string_t get_redirect_url() const;
+  std::string get_client_id() const;
+  std::string get_client_secret() const;
+  std::string get_redirect_url() const;
   keycode get_volume_up() const;
   keycode get_volume_down() const;
   volume volume_increment() const;
@@ -28,21 +29,18 @@ public:
   bool is_default_up() const;
 
   bool should_print_keys() const;
-  bool is_valid();
+  bool is_valid() const;
   bool hide_window() const;
 
   [[nodiscard]] std::filesystem::path config_directory() const;
 
-  static const utility::string_t SCOPES;
-  static const web::uri BASE_AUTHENTICATION_API_URI;
-
 private:
-  const utility::string_t DEFAULT_CALLBACK_URL = L"http://localhost:5000/callback";
-  web::json::value config;
+  static constexpr std::string_view DEFAULT_CALLBACK_URL = "http://localhost:5000/callback";
+  json config;
   std::filesystem::path directory;
 
-  void get_user_input(utility::string_t prompt, utility::string_t& input, bool not_empty = false) const;
-  void parse_config_file(std::string const& path);
+  void get_user_input(const std::string_view prompt, std::string& input, bool not_empty = false) const;
+  void parse_config_file(const std::filesystem::path& path);
 };
 
 }  // namespace spotify_volume_controller

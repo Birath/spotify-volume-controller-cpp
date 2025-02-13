@@ -2,63 +2,50 @@
 
 #include <map>
 
-#include <cpprest/http_client.h>
+#include <fmt/format.h>
+#include <cpr/cpr.h>
+#include <nlohmann/json.hpp>
 
 #include "Config.h"
 #include "data_types.h"
-
+// for convenience
+using json = nlohmann::json;
 namespace spotify_volume_controller
 {
 
 class Client
 {
 public:
-  Client(web::json::value& token_info, const Config& m_config);
-  ~Client();
-  /// <summary>
-  /// Makes a http request to *endpoint* using http method *http_method*
-  /// </summary>
-  web::http::http_response api_request(const utility::string_t& endpoint, const web::http::method http_method);
-  web::http::http_response api_request(const utility::string_t& endpoint,
-                                       const web::http::method http_method,
-                                       const utility::string_t& query);
+  Client(token_t token_info, const Config& m_config);
 
-  /// <summary>
-  /// Makes a request to the device endpoint
-  /// </summary>
-  std::optional<web::json::array> get_devices();
+  [[nodiscard]] cpr::Response api_request(const std::string_view endpoint);
+  [[nodiscard]] cpr::Response put_api_request(const std::string_view endpoint, const cpr::Payload& parameters);
 
-  std::optional<volume> get_device_volume(const utility::string_t& id);
 
-  /// <summary>
-  /// Sets the volume of device_id to *volume*
-  /// </summary>
-  [[nodiscard]] web::http::http_response set_device_volume(volume volume, const utility::string_t& device_id = L"");
+  // Makes a request to the device endpoint
+  [[nodiscard]] std::optional<json> get_devices();
 
-  /// <summary>
-  /// Sets the volume of currently playing device to *volume*
-  /// </summary>
-  [[nodiscard]] web::http::http_response set_volume(volume volume);
+  [[nodiscard]] std::optional<volume> get_device_volume(const std::string_view id);
 
-  /// <summary>
-  /// Returns the volume percent of the current playing device, or -1 if no playing devices
-  /// </summary>
+  // Sets the volume of device_id to *volume*
+  [[nodiscard]] cpr::Response set_device_volume(volume volume, const std::string& device_id = "");
+
+  // Sets the volume of currently playing device to *volume*
+  [[nodiscard]] cpr::Response set_volume(volume volume);
+
+  // Returns the volume percent of the current playing device
   std::optional<volume> get_current_playing_volume();
 
-  /// <summary>
-  /// Returns the first desktop device found
-  /// </summary>
-  web::json::value get_desktop_player();
+  // Returns the ID of the first desktop device found
+  [[nodiscard]] std::optional<std::string> get_desktop_player_id();
 
-  static void print_error_message(const web::http::http_response& response);
+  void print_error_message(const cpr::Response& response) const;
+
 private:
-  void authorize_header(web::http::http_request request);
+  [[nodiscard]] std::string get_token();
 
-  web::json::value m_token_info;
-  web::http::client::http_client* client;
+  token_t m_token_info;
   const Config m_config;
-  const utility::string_t ACCESS_TOKEN = L"access_token";
-  static const web::uri BASE_API_URI;
 };
 
 }  // namespace spotify_volume_controller
