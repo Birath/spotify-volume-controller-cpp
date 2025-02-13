@@ -50,7 +50,7 @@ jobs:
       run: cmake --install build --config Release --prefix install
 
     - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v3.1.2
+      uses: actions/upload-artifact@v4
       with:
         name: "spotify-volume-controller"
         path: |
