@@ -10,9 +10,9 @@
 
 #include <cpr/cpr.h>
 #include <fmt/format.h>
+#include <httplib.h>
 #include <nlohmann/json.hpp>
 
-#include "SpotifyListener.h"
 #include "windows_helpers.h"
 
 // for convenience
@@ -57,8 +57,6 @@ void open_uri(const std::string_view uri)
 
 [[nodiscard]] std::string get_authorization_code(const std::string& callback_address, const Config& config)
 {
-  SpotifyListener listener(callback_address);
-  listener.open();
   cpr::CurlHolder c {};
   cpr::Parameters params = {{"client_id", config.get_client_id()},
                             {"redirect_uri", config.get_redirect_url()},
@@ -71,14 +69,30 @@ void open_uri(const std::string_view uri)
   std::cout << "If your browser did not open, please go to the following link to accept the prompt:" << '\n';
   std::cout << auth_url << std::endl;
   open_uri(auth_url);
-
-  utility::string_t authorization_code = listener.get_authorization_code();
-  listener.close();
-  if (authorization_code.substr(0, 5) == L"Error") {
-    std::wcout << "Authorization failed. Reason: " << authorization_code << std::endl;
-    return "";
+  std::string authorization_code {};
+  {
+    std::thread th;
+    httplib::Server server;
+    server.Get("/callback",
+              [&](const httplib::Request& req, httplib::Response res)
+              {
+                if (req.has_param("code")) {
+                  authorization_code = req.get_param_value("code");
+                  res.set_content("Successfully authenticated", "text/plain");
+                } else if (req.has_param("error")) {
+                  std::cerr << "Failed to get authorization code: " << req.get_param_value("error") << std::endl;
+                  res.set_content("Failed to authenticate, check logs", "text/plain");
+                } else {
+                  std::cerr << "Failed to get authorization code: Unkown error" << std::endl;
+                  res.set_content("Failed to authenticate, check logs", "text/plain");
+                }
+                // Based on https://github.com/yhirose/cpp-httplib/blob/master/example/one_time_request.cc
+                th = std::thread([&]() { server.stop(); });
+              });
+    server.listen("0.0.0.0", 5000);
+    th.join();
   }
-  return windows::wide_string_to_string(authorization_code);
+  return authorization_code;
 }
 
 [[nodiscard]] json fetch_token(const std::string& code, const std::string& grant_type, const Config& config)

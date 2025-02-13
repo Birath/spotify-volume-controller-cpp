@@ -6,10 +6,11 @@
       "name": "fmt",
       "version>=": "10.1.0"
     },
-    "cpprestsdk",
+
     "cpr",
     "argparse",
-    "nlohmann-json"
+    "nlohmann-json",
+    "cpp-httplib"
   ],
   "default-features": [],
   "features": {

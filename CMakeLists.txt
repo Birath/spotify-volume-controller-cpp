@@ -13,11 +13,11 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
-find_package(cpprestsdk REQUIRED)
 find_package(argparse CONFIG REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(fmt REQUIRED)
 find_package(cpr REQUIRED)
+find_package(httplib REQUIRED)
 
 # ---- Declare library ----
 
@@ -25,10 +25,7 @@ add_library(
   spotify_volume_controller_lib OBJECT
   source/Client.cpp
   source/Config.cpp
-  source/http_utils.cpp
   source/oauth.cpp
-  source/SpotifyListener.cpp
-  source/updater.cpp
   source/VolumeController.cpp
   source/windows_helpers.cpp
 )
@@ -41,7 +38,7 @@ target_include_directories(
 
 target_compile_features(spotify_volume_controller_lib PUBLIC cxx_std_20)
 target_compile_definitions(spotify_volume_controller_lib PRIVATE _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS=1)
-target_link_libraries(spotify_volume_controller_lib PRIVATE cpprestsdk::cpprest nlohmann_json::nlohmann_json fmt::fmt cpr::cpr)
+target_link_libraries(spotify_volume_controller_lib PRIVATE  nlohmann_json::nlohmann_json fmt::fmt cpr::cpr httplib::httplib)
 
 set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
 
@@ -60,7 +57,7 @@ set_property(TARGET spotify_volume_controller_exe PROPERTY RESOURCE resources/co
 target_compile_features(spotify_volume_controller_exe PRIVATE cxx_std_20)
 target_compile_definitions(spotify_volume_controller_exe PRIVATE _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS=1)
 target_compile_definitions(spotify_volume_controller_exe PRIVATE VERSION="${PROJECT_VERSION}")
-target_link_libraries(spotify_volume_controller_exe PRIVATE spotify_volume_controller_lib  argparse::argparse cpprestsdk::cpprest)
+target_link_libraries(spotify_volume_controller_exe PRIVATE spotify_volume_controller_lib argparse::argparse)
 # ---- Install rules ----
 
 if(NOT CMAKE_SKIP_INSTALL_RULES)

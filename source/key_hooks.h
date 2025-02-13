@@ -40,7 +40,7 @@ LRESULT CALLBACK PrintVKey(int nCode, WPARAM wParam, LPARAM lParam)
   }
   if (wParam == WM_KEYDOWN) {
     kbdStruct = *((KBDLLHOOKSTRUCT*)lParam);
-    std::wcout << kbdStruct.vkCode << std::endl;
+    std::cout << kbdStruct.vkCode << std::endl;
   }
   return CallNextHookEx(_hook, nCode, wParam, lParam);
 }
