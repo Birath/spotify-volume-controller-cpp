@@ -66,6 +66,16 @@
       }
     },
     {
+      "name": "flags-windows-gcc-clang",
+      "description": "These flags are supported by both GCC and Clang",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -D_GLIBCXX_ASSERTIONS=1 -fstack-protector-strong -fcf-protection=full -fstack-clash-protection -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wcast-qual -Wformat=2 -Wundef -Werror=float-equal -Wshadow -Wcast-align -Wunused -Wnull-dereference -Wdouble-promotion -Wimplicit-fallthrough -Wextra-semi -Woverloaded-virtual -Wnon-virtual-dtor -Wold-style-cast",
+        "CMAKE_EXE_LINKER_FLAGS": "-Wl,--allow-shlib-undefined,--as-needed",
+        "CMAKE_SHARED_LINKER_FLAGS": "-Wl,--allow-shlib-undefined,--as-needed"
+      }
+    },
+    {
       "name": "flags-appleclang",
       "hidden": true,
       "cacheVariables": {
@@ -105,6 +115,19 @@
       "generator": "Visual Studio 17 2022",
       "architecture": "x64",
       "hidden": true
+    },
+    {
+      "name": "ci-win-mingw64",
+      "inherits": ["flags-windows-gcc-clang", "ci-std"],
+      "generator": "Ninja",
+      "hidden": true
+    },
+    {
+      "name": "vcpkg-mingw64-static",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-static"
+      }
     },
     {
       "name": "coverage-linux",

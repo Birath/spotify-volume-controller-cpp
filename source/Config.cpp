@@ -1,15 +1,32 @@
+#include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 
 #include "Config.h"
 
 #include <fmt/format.h>
 
-constexpr std::string_view VOLUME_INCREMENT_KEY = "volume_increment";
+#include "data_types.h"
 
 namespace spotify_volume_controller
 {
+
+constexpr std::string_view client_id_key = "client_id";
+constexpr std::string_view client_secret_key = "client_secret";
+constexpr std::string_view hide_window_key = "hide_window";
+constexpr std::string_view redirect_url_key = "redirect_url";
+constexpr std::string_view print_keys_key = "print_keys";
+constexpr std::string_view volume_increment_key = "volume_increment";
+constexpr std::string_view volume_up_key = "volume_up";
+constexpr std::string_view volume_down_key = "volume_down";
+constexpr std::string_view batch_delay_key = "batch_delay_ms";
+
+constexpr std::chrono::milliseconds default_batch_delay {100};
+constexpr uint32_t default_volume_increment = 1;
 
 Config::Config()
 {
@@ -40,35 +57,36 @@ void Config::parse_config_file(const std::filesystem::path& path)
   std::string input {};
 
   get_user_input("Please enter your spotify client id", input, true);
-  config["client_id"] = input;
+  config[client_id_key] = input;
 
   get_user_input("Please enter your spotify client secret", input, true);
-  config["client_secret"] = input;
+  config[client_secret_key] = input;
 
   get_user_input(fmt::format("Enter callback url, or leave empty for default ({}).", Config::DEFAULT_CALLBACK_URL),
                  input);
   if (input.empty()) {
-    config["redirect_url"] = Config::DEFAULT_CALLBACK_URL;
+    config[redirect_url_key] = Config::DEFAULT_CALLBACK_URL;
   } else {
-    config["redirect_url"] = input;
+    config[redirect_url_key] = input;
   }
 
   get_user_input("Enter volume up virtual keycode as a number, or leave empty for default", input);
   if (input.empty()) {
-    config["volume_up"] = "default";
+    config[volume_up_key] = "default";
   } else {
-    config["volume_up"] = input;
+    config[volume_up_key] = input;
   }
   get_user_input("Enter volume down virtual keycode as a number, or leave empty for default", input);
   if (input.empty()) {
-    config["volume_down"] = "default";
+    config[volume_down_key] = "default";
   } else {
-    config["volume_down"] = input;
+    config[volume_down_key] = input;
   }
-  config["print_keys"] = false;
-  config["hide_window"] = false;
+  config[print_keys_key] = false;
+  config[hide_window_key] = false;
 
-  config[VOLUME_INCREMENT_KEY.data()] = 1;
+  config[volume_increment_key] = default_volume_increment;
+  config[batch_delay_key] = default_batch_delay.count();
 
   new_config_file << config;
   new_config_file.close();
@@ -76,62 +94,62 @@ void Config::parse_config_file(const std::filesystem::path& path)
 
 std::string Config::get_client_id() const
 {
-  return config.at("client_id").template get<std::string>();
+  return config.at(client_id_key).template get<std::string>();
 }
 std::string Config::get_client_secret() const
 {
-  return config.at("client_secret").template get<std::string>();
+  return config.at(client_secret_key).template get<std::string>();
 }
 std::string Config::get_redirect_url() const
 {
-  return config.at("redirect_url").template get<std::string>();
+  return config.at(redirect_url_key).template get<std::string>();
 }
 
 bool Config::should_print_keys() const
 {
-  return config.at("print_keys").template get<bool>();
+  return config.at(print_keys_key).template get<bool>();
 }
 
 keycode Config::get_volume_up() const
 {
-  if (!config.contains("volume_up")) {
-    throw std::runtime_error("Missing volume_up config");
+  if (!config.contains(volume_up_key)) {
+    throw std::runtime_error(std::format("Missing {} config", volume_up_key));
   }
-  json v_up = config.at("volume_up");
+  json v_up = config.at(volume_down_key);
   if (!v_up.is_number_integer()) {
-    throw std::runtime_error("volume_up config is not a valid keycode");
+    throw std::runtime_error(fmt::format("{} config is not a valid keycode", volume_up_key));
   }
   return v_up.template get<keycode>();
 }
 
 keycode Config::get_volume_down() const
 {
-  if (!config.contains("volume_down")) {
-    throw std::runtime_error("Missing volume_down config");
+  if (!config.contains(volume_down_key)) {
+    throw std::runtime_error(fmt::format("Missing {} config", volume_down_key));
   }
-  json v_down = config.at("volume_down");
+  json v_down = config.at(volume_down_key);
 
   if (!v_down.is_number_integer()) {
-    throw std::runtime_error("volume_down config is not a valid keycode");
+    throw std::runtime_error(std::format("{} config is not a valid keycode", volume_down_key));
   }
   return v_down.template get<keycode>();
 }
 
 bool Config::is_default_down() const
 {
-  if (!config.contains("volume_down")) {
+  if (!config.contains(volume_down_key)) {
     return false;
   }
-  json v_down = config.at("volume_down");
+  json v_down = config.at(volume_down_key);
   return v_down.is_string() && v_down.template get<std::string>() == "default";
 }
 
 bool Config::is_default_up() const
 {
-  if (!config.contains("volume_up")) {
+  if (!config.contains(volume_down_key)) {
     return false;
   }
-  json v_up = config.at("volume_up");
+  json v_up = config.at(volume_down_key);
   return v_up.is_string() && v_up.template get<std::string>() == "default";
 }
 
@@ -142,11 +160,11 @@ bool Config::is_valid() const
 
 bool Config::hide_window() const
 {
-  if (!config.contains("hide_window")) {
+  if (!config.contains(hide_window_key)) {
     return false;
   }
 
-  return config.at("hide_window").template get<bool>();
+  return config.at(hide_window_key).template get<bool>();
 }
 
 [[nodiscard]] std::filesystem::path Config::config_directory() const
@@ -156,11 +174,16 @@ bool Config::hide_window() const
 
 volume Config::volume_increment() const
 {
-  if (!config.contains(VOLUME_INCREMENT_KEY.data())) {
-    return 1;
+  if (!config.contains(volume_increment_key.data())) {
+    return default_volume_increment;
   }
 
-  return config.at(VOLUME_INCREMENT_KEY.data()).template get<volume_t>();
+  return config.at(volume_increment_key.data()).template get<volume_t>();
+}
+
+std::chrono::milliseconds Config::batch_delay() const
+{
+  return std::chrono::milliseconds(config.value(batch_delay_key, default_batch_delay.count()));
 }
 
 void Config::get_user_input(const std::string_view prompt, std::string& input, bool not_empty) const

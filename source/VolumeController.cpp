@@ -1,20 +1,32 @@
+#include <chrono>
+#include <future>
+#include <mutex>
 #include <string>
+#include <thread>
 
 #include "VolumeController.h"
 
+#include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
+#include <winuser.h>
 
+#include "Client.h"
+#include "Config.h"
+#include "data_types.h"
 #include "key_hooks.h"
-// for convenience
-using json = nlohmann::json;
+
 namespace spotify_volume_controller
 {
+// for convenience
+using json = nlohmann::json;
+using namespace std::chrono_literals;
 
 VolumeController::VolumeController(const Config& config, Client& client)
     : m_config(config)
     , m_client(client)
     , m_volume_up_keycode(config.is_default_up() ? VK_VOLUME_UP : config.get_volume_up())
     , m_volume_down_keycode(config.is_default_down() ? VK_VOLUME_DOWN : config.get_volume_down())
+    , m_client_thread(std::thread(&VolumeController::set_volume_loop, this))
 {
 }
 
@@ -36,35 +48,56 @@ void VolumeController::set_desktop_device()
 
 void VolumeController::decrease_volume()
 {
-  set_volume(m_volume - m_config.volume_increment());
+  {
+    std::unique_lock lk(m_volume_mutex);
+    // Assume that the API call will succeed
+    m_volume = m_volume - m_config.volume_increment();
+    m_volume_queue.push(m_volume);
+  }
+  if (m_config.batch_delay() > 0ms) {
+    m_notify_timer.start([this]() { m_volume_cv.notify_one(); }, m_config.batch_delay());
+  } else {
+    m_volume_cv.notify_one();
+  }
 }
 
 void VolumeController::increase_volume()
 {
-  set_volume(m_volume + m_config.volume_increment());
+  {
+    std::unique_lock lk(m_volume_mutex);
+    // Assume that the API call will succeed
+    m_volume = m_volume + m_config.volume_increment();
+    m_volume_queue.push(m_volume);
+  }
+  if (m_config.batch_delay() > 0ms) {
+    m_notify_timer.start([this]() { m_volume_cv.notify_one(); }, m_config.batch_delay());
+  } else {
+    m_volume_cv.notify_one();
+  }
 }
 
-void VolumeController::set_volume(const volume to_volume)
-{
-  volume new_volume = to_volume;
+void VolumeController::set_volume_to_desktop_device_volume() {
   if (!m_desktop_device_id.has_value()) {
     set_desktop_device();
-    if (m_desktop_device_id.has_value()) {
-      new_volume = m_client.get_device_volume(m_desktop_device_id.value()).value_or(volume(0));
-    }
   }
+  if (m_desktop_device_id.has_value()) {
+    m_volume = m_client.get_device_volume(m_desktop_device_id.value()).value_or(volume(0));
+  }
+}
 
+void VolumeController::set_volume(const volume new_volume)
+{
   cpr::Response result = m_client.set_volume(new_volume);
   if (result.status_code == cpr::status::HTTP_NO_CONTENT) {
-    m_volume = new_volume;
     return;
-  } else if ((result.status_code == cpr::status::HTTP_NOT_FOUND || result.status_code == cpr::status::HTTP_FORBIDDEN || cpr::status::HTTP_LENGTH_REQUIRED)
-             && m_desktop_device_id.has_value())
+  }
+  if ((result.status_code == cpr::status::HTTP_NOT_FOUND || result.status_code == cpr::status::HTTP_FORBIDDEN
+       || result.status_code == cpr::status::HTTP_LENGTH_REQUIRED)
+      && m_desktop_device_id.has_value())
   {
     result = m_client.set_device_volume(new_volume, m_desktop_device_id.value());
   }
   if (result.status_code == cpr::status::HTTP_NO_CONTENT) {
-    m_volume = new_volume;
     return;
   }
   m_client.print_error_message(result);
@@ -72,6 +105,7 @@ void VolumeController::set_volume(const volume to_volume)
 
 void VolumeController::start()
 {
+  set_volume_to_desktop_device_volume();
   key_hooks::start_volume_hook(this);
 }
 
@@ -89,4 +123,19 @@ void VolumeController::print_keys()
 {
   return m_volume_down_keycode;
 }
+
+void VolumeController::set_volume_loop()
+{
+  while (true) {
+    std::unique_lock lk(m_volume_mutex);
+    m_volume_cv.wait(lk, [&] { return !m_volume_queue.empty(); });
+    volume new_volume {0};
+    while (!m_volume_queue.empty()) {
+      new_volume = m_volume_queue.front();
+      m_volume_queue.pop();
+    }
+    set_volume(new_volume);
+  }
+}
+
 }  // namespace spotify_volume_controller

@@ -8,6 +8,8 @@ namespace spotify_volume_controller
 using keycode = unsigned int;
 using volume_t = unsigned int;
 
+constexpr volume_t max_volume{100};
+
 struct volume
 {
   volume(volume_t v)
@@ -24,12 +26,12 @@ struct volume
 
   [[nodiscard]] volume_t operator+(const volume other) const
   {
-    return m_volume + other.m_volume > 100 ? 100 : m_volume + other.m_volume;
+    return m_volume + other.m_volume > max_volume ? max_volume : m_volume + other.m_volume;
   }
 
   volume& operator++()
   {
-    if (m_volume < 100) {
+    if (m_volume < max_volume) {
       m_volume++;
     }
     return *this;

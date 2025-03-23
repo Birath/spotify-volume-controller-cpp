@@ -2,8 +2,8 @@
 
 #include <map>
 
-#include <fmt/format.h>
 #include <cpr/cpr.h>
+#include <fmt/format.h>
 #include <nlohmann/json.hpp>
 
 #include "Config.h"
@@ -20,7 +20,6 @@ public:
 
   [[nodiscard]] cpr::Response api_request(const std::string_view endpoint);
   [[nodiscard]] cpr::Response put_api_request(const std::string_view endpoint, const cpr::Payload& parameters);
-
 
   // Makes a request to the device endpoint
   [[nodiscard]] std::optional<json> get_devices();
