@@ -1,14 +1,15 @@
 #pragma once
+#include <chrono>
 #include <filesystem>
 
 #include <nlohmann/json.hpp>
 
 #include "data_types.h"
 
-// for convenience
-using json = nlohmann::json;
 namespace spotify_volume_controller
 {
+// for convenience
+using json = nlohmann::json;
 
 class Config
 {
@@ -24,6 +25,7 @@ public:
   keycode get_volume_up() const;
   keycode get_volume_down() const;
   volume volume_increment() const;
+  std::chrono::milliseconds batch_delay() const;
 
   bool is_default_down() const;
   bool is_default_up() const;

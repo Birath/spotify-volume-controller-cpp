@@ -6,7 +6,10 @@
       "name": "fmt",
       "version>=": "10.1.0"
     },
-
+    {
+      "name": "curl",
+      "version>=": "8.12.1"
+    },
     "cpr",
     "argparse",
     "nlohmann-json",
