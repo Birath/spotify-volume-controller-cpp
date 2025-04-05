@@ -27,7 +27,7 @@ add_library(
   source/Config.cpp
   source/oauth.cpp
   source/VolumeController.cpp
-  source/windows_helpers.cpp
+  source/key_hooks.cpp
 )
 
 target_include_directories(
