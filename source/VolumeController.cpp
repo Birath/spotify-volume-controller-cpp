@@ -29,6 +29,7 @@ VolumeController::VolumeController(const Config& config, Client& client)
     , m_volume_up_keycode(config.is_default_up() ? VK_VOLUME_UP : config.get_volume_up())
     , m_volume_down_keycode(config.is_default_down() ? VK_VOLUME_DOWN : config.get_volume_down())
     , m_client_thread(std::thread(&VolumeController::set_volume_loop, this))
+    , m_update_current_volume_thread(std::jthread(&VolumeController::update_current_volume_loop, this))
 {
 }
 
@@ -43,15 +44,10 @@ void VolumeController::set_desktop_device()
   m_desktop_device_id = desktop;
 }
 
-[[nodiscard]] volume VolumeController::get_volume() const
-{
-  return m_volume;
-}
-
 void VolumeController::decrease_volume()
 {
   {
-    std::unique_lock const lock(m_volume_mutex);
+    std::lock_guard const lock(m_volume_mutex);
     // Assume that the API call will succeed
     m_volume = m_volume - m_config.volume_increment();
     m_volume_queue.push(m_volume);
@@ -66,7 +62,7 @@ void VolumeController::decrease_volume()
 void VolumeController::increase_volume()
 {
   {
-    std::unique_lock const lock(m_volume_mutex);
+    std::lock_guard const lock(m_volume_mutex);
     // Assume that the API call will succeed
     m_volume = m_volume + m_config.volume_increment();
     m_volume_queue.push(m_volume);
@@ -117,16 +113,6 @@ void VolumeController::print_keys()
   key_hooks::start_print_vkey();
 }
 
-[[nodiscard]] keycode VolumeController::volume_up_keycode() const 
-{
-  return m_volume_up_keycode;
-}
-
-[[nodiscard]] keycode VolumeController::volume_down_keycode() const 
-{
-  return m_volume_down_keycode;
-}
-
 void VolumeController::set_volume_loop()
 {
   while (true) {
@@ -138,6 +124,24 @@ void VolumeController::set_volume_loop()
       m_volume_queue.pop();
     }
     set_volume(new_volume);
+  }
+}
+
+void VolumeController::update_current_volume_loop()
+{
+  while (true) {
+    {
+      std::lock_guard const lock(m_volume_mutex);
+      if (m_volume_queue.empty()) {
+        std::optional<volume> current_volume = m_client.get_current_playing_volume();
+        if (current_volume.has_value()) {
+          {
+            m_volume = current_volume.value();
+          }
+        }
+      }
+    }
+    std::this_thread::sleep_for(m_config.poll_rate());
   }
 }
 
