@@ -1,7 +1,8 @@
 #pragma once
 
-#include <string>
 #include <cstdint>
+#include <string>
+
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 
@@ -17,8 +18,8 @@ struct volume
 {
   volume(const volume&) = default;
   volume(volume&&) = default;
-  auto operator=(const volume&) -> volume& = default;
-  auto operator=(volume&&) -> volume& = default;
+  volume& operator=(const volume&) = default;
+  volume& operator=(volume&&) = default;
   ~volume() = default;
   volume() = default;
 
@@ -29,17 +30,17 @@ struct volume
 
   volume_t m_volume;
 
-  [[nodiscard]] auto operator-(const volume other) const -> volume
+  [[nodiscard]] volume operator-(const volume other) const
   {
     return volume(m_volume < other.m_volume ? 0 : m_volume - other.m_volume);
   }
 
-  [[nodiscard]] auto operator+(const volume other) const -> volume
+  [[nodiscard]] volume operator+(const volume other) const
   {
     return volume(m_volume + other.m_volume > max_volume ? max_volume : m_volume + other.m_volume);
   }
 
-  auto operator++() -> volume&
+  volume& operator++()
   {
     if (m_volume < max_volume) {
       m_volume++;
@@ -47,7 +48,7 @@ struct volume
     return *this;
   }
 
-  auto operator++(int) -> volume
+  volume operator++(int)
   {
     volume old_val = *this;
     operator++();
@@ -55,7 +56,7 @@ struct volume
   }
 
   // prefix decrement
-  auto operator--() -> volume&
+  volume& operator--()
   {
     // actual decrement takes place here
     if (m_volume > 1) {
@@ -64,7 +65,7 @@ struct volume
     return *this;  // return new value by reference
   }
 
-  auto operator--(int) -> volume
+  volume operator--(int)
   {
     volume old = *this;
     operator--();
@@ -93,7 +94,7 @@ struct token_t
   {
   }
 
-  [[nodiscard]] auto as_json() const -> nlohmann::json
+  [[nodiscard]] nlohmann::json as_json() const
   {
     nlohmann::json j_token {};
     j_token["access_token"] = access_token;

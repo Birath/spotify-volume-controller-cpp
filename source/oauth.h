@@ -25,23 +25,23 @@ constexpr std::string_view base_authentication_api_url = "https://accounts.spoti
 constexpr std::string_view token_api_endpoint = "token";
 constexpr std::string_view token_file_name = ".spotifytoken";
 
-[[nodiscard]] auto get_authorization_code(const std::string& callback_address, const Config& config)
-    -> std::optional<std::string>;
+[[nodiscard]] std::optional<std::string> get_authorization_code(const std::string& callback_address,
+                                                                const Config& config);
 
-[[nodiscard]] auto get_token(const std::string& authorization_code, const Config& config) -> token_t;
-[[nodiscard]] auto get_token(const Config& config) -> std::optional<token_t>;
+[[nodiscard]] token_t get_token(const std::string& authorization_code, const Config& config);
+[[nodiscard]] std::optional<token_t> get_token(const Config& config);
 
-[[nodiscard]] auto refresh_token(const token_t& token, const Config& config) -> token_t;
+[[nodiscard]] token_t refresh_token(const token_t& token, const Config& config);
 
-[[nodiscard]] auto fetch_token(const std::string& code, grant_type grant_type, const Config& config) -> nlohmann::json;
+[[nodiscard]] nlohmann::json fetch_token(const std::string& code, grant_type grant_type, const Config& config);
 
 // Saves *token* to a file
 void save_token(const token_t& token, const std::filesystem::path& token_directory);
 
 // Returns the token stored on the disk
-[[nodiscard]] auto read_token(const std::filesystem::path& token_directory) -> std::optional<token_t>;
+[[nodiscard]] std::optional<token_t> read_token(const std::filesystem::path& token_directory);
 
-[[nodiscard]] auto token_is_expired(const token_t& token) -> bool;
+[[nodiscard]] bool token_is_expired(const token_t& token);
 
 void open_uri(std::string_view uri);
 

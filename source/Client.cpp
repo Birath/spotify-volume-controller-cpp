@@ -33,21 +33,20 @@ Client::Client(token_t token_info, const Config& config)
 {
 }
 
-[[nodiscard]] auto Client::api_request(const std::string_view endpoint) -> cpr::Response
+[[nodiscard]] cpr::Response Client::api_request(const std::string_view endpoint)
 {
   cpr::Url const url {fmt::format("{}{}", api_url, endpoint)};
 
   return cpr::Get(url, cpr::Bearer {get_token()});
 }
 
-[[nodiscard]] auto Client::put_api_request(const std::string_view endpoint, const cpr::Payload& payload)
-    -> cpr::Response
+[[nodiscard]] cpr::Response Client::put_api_request(const std::string_view endpoint, const cpr::Payload& payload)
 {
   cpr::Url const url {fmt::format("{}{}", api_url, endpoint)};
   return cpr::Put(url, payload, cpr::Bearer {get_token()});
 }
 
-[[nodiscard]] auto Client::get_devices() -> std::optional<json>
+[[nodiscard]] std::optional<json> Client::get_devices()
 {
   cpr::Response const response = api_request("/v1/me/player/devices");
   if (response.status_code != cpr::status::HTTP_OK) {
@@ -58,7 +57,7 @@ Client::Client(token_t token_info, const Config& config)
   return response_body.at("devices");
 }
 
-[[nodiscard]] auto Client::get_device_volume(const std::string_view device_id) -> std::optional<volume>
+[[nodiscard]] std::optional<volume> Client::get_device_volume(const std::string_view device_id)
 {
   std::optional<json> devices = get_devices();
   if (!devices.has_value()) {
@@ -74,7 +73,7 @@ Client::Client(token_t token_info, const Config& config)
   return {};
 }
 
-[[nodiscard]] auto Client::set_device_volume(volume volume, const std::string& device_id) -> cpr::Response
+[[nodiscard]] cpr::Response Client::set_device_volume(volume volume, const std::string& device_id)
 {
   cpr::Parameters payload {{"volume_percent", fmt::format("{}", volume.m_volume)}};
   if (!device_id.empty()) {
@@ -84,12 +83,12 @@ Client::Client(token_t token_info, const Config& config)
   return cpr::Put(url, payload, cpr::Bearer {get_token()}, cpr::Header {{"Content-Length", "0"}});
 }
 
-[[nodiscard]] auto Client::set_volume(volume volume) -> cpr::Response
+[[nodiscard]] cpr::Response Client::set_volume(volume volume)
 {
   return set_device_volume(volume);
 }
 
-auto Client::get_current_playing_volume() -> std::optional<volume>
+std::optional<volume> Client::get_current_playing_volume()
 {
   std::optional<json> devices = get_devices();
   if (!devices.has_value()) {
@@ -107,7 +106,7 @@ auto Client::get_current_playing_volume() -> std::optional<volume>
   return {};
 }
 
-[[nodiscard]] auto Client::get_desktop_player_id() -> std::optional<std::string>
+[[nodiscard]] std::optional<std::string> Client::get_desktop_player_id()
 {
   std::optional<json> devices = get_devices();
   if (!devices.has_value()) {
@@ -122,7 +121,7 @@ auto Client::get_current_playing_volume() -> std::optional<volume>
   return {};
 }
 
-[[nodiscard]] auto Client::get_token() -> std::string
+[[nodiscard]] std::string Client::get_token()
 {
   if (oauth::token_is_expired(m_token_info)) {
     m_token_info = oauth::refresh_token(m_token_info, m_config);

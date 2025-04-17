@@ -18,7 +18,7 @@ namespace spotify_volume_controller
 class Timer
 {
 public:
-  [[nodiscard]] auto is_running() const -> bool { return m_is_running; }
+  [[nodiscard]] bool is_running() const { return m_is_running; }
   void start(const std::function<void(void)>& callback, std::chrono::milliseconds delay)
   {
     if (m_is_running) {
@@ -43,16 +43,16 @@ class VolumeController
 public:
   VolumeController(const VolumeController&) = delete;
   VolumeController(VolumeController&&) = delete;
-  auto operator=(const VolumeController&) -> VolumeController& = delete;
-  auto operator=(VolumeController&&) -> VolumeController& = delete;
+  VolumeController& operator=(const VolumeController&) = delete;
+  VolumeController& operator=(VolumeController&&) = delete;
   VolumeController(const Config& config, Client& client);
   ~VolumeController();
 
   void set_desktop_device();
 
-  [[nodiscard]] auto get_volume() const -> volume;
-  [[nodiscard]] auto volume_up_keycode() const -> keycode;
-  [[nodiscard]] auto volume_down_keycode() const -> keycode;
+  [[nodiscard]] volume get_volume() const;
+  [[nodiscard]] keycode volume_up_keycode() const;
+  [[nodiscard]] keycode volume_down_keycode() const;
   void decrease_volume();
   void increase_volume();
 

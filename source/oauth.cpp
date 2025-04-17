@@ -24,6 +24,7 @@
 #include <fmt/core.h>
 #include <httplib.h>
 #include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 #include "Config.h"
 #include "data_types.h"
@@ -36,7 +37,7 @@ using json = nlohmann::json;
 namespace
 {
 
-constexpr auto grant_type_to_string(grant_type grant_type) -> std::string
+constexpr std::string grant_type_to_string(grant_type grant_type)
 {
   switch (grant_type) {
     case grant_type::authorization_code:
@@ -49,7 +50,7 @@ constexpr auto grant_type_to_string(grant_type grant_type) -> std::string
 
 // Based on https://gist.github.com/williamdes/308b95ac9ef1ee89ae0143529c361d37
 constexpr std::string_view base_64_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";  //=
-constexpr auto base64_encode(const std::string_view input) -> std::string
+constexpr std::string base64_encode(const std::string_view input)
 {
   std::string out;
 
@@ -86,8 +87,8 @@ void open_uri(const std::string_view uri)
   system(ss.str().c_str());
 }
 
-[[nodiscard]] auto get_authorization_code(const std::string& callback_address, const Config& config)
-    -> std::optional<std::string>
+[[nodiscard]] std::optional<std::string> get_authorization_code(const std::string& callback_address,
+                                                                const Config& config)
 {
   cpr::CurlHolder const curl_holder {};
   cpr::Parameters const params = {{"client_id", config.get_client_id()},
@@ -177,7 +178,7 @@ void open_uri(const std::string_view uri)
   return authorization_code;
 }
 
-[[nodiscard]] auto fetch_token(const std::string& code, grant_type grant_type, const Config& config) -> json
+[[nodiscard]] json fetch_token(const std::string& code, grant_type grant_type, const Config& config)
 {
   cpr::Payload payload {{"grant_type", grant_type_to_string(grant_type)}};
   switch (grant_type) {
@@ -199,7 +200,7 @@ void open_uri(const std::string_view uri)
   return json::parse(response.text);
 }
 
-[[nodiscard]] auto get_token(const std::string& authorization_code, const Config& config) -> token_t
+[[nodiscard]] token_t get_token(const std::string& authorization_code, const Config& config)
 {
   json const j_token = fetch_token(authorization_code, grant_type::authorization_code, config);
   if (j_token.contains("error")) {
@@ -216,7 +217,7 @@ void open_uri(const std::string_view uri)
   return token;
 }
 
-[[nodiscard]] auto get_token(const Config& config) -> std::optional<token_t>
+[[nodiscard]] std::optional<token_t> get_token(const Config& config)
 {
   std::cout << "Getting authorization token..." << '\n';
   std::optional<token_t> token = read_token(config.config_directory());
@@ -234,7 +235,7 @@ void open_uri(const std::string_view uri)
   return token;
 }
 
-[[nodiscard]] auto refresh_token(const token_t& token, const Config& config) -> token_t
+[[nodiscard]] token_t refresh_token(const token_t& token, const Config& config)
 {
   json j_new_token = fetch_token(token.refresh_token, grant_type::refresh_token, config);
   if (j_new_token.contains("error")) {
@@ -275,7 +276,7 @@ void save_token(const token_t& token, const std::filesystem::path& token_directo
   }
 }
 
-auto read_token(const std::filesystem::path& token_directory) -> std::optional<token_t>
+std::optional<token_t> read_token(const std::filesystem::path& token_directory)
 {
   std::ifstream token_file(token_directory / token_file_name);
 
@@ -287,7 +288,7 @@ auto read_token(const std::filesystem::path& token_directory) -> std::optional<t
   return {};
 }
 
-[[nodiscard]] auto token_is_expired(const token_t& token) -> bool
+[[nodiscard]] bool token_is_expired(const token_t& token)
 {
   auto const time_since_epoch =
       std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch());

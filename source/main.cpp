@@ -17,7 +17,7 @@
 #  define VERSION "debug"
 #endif
 
-auto main(int argc, char* argv[]) -> int
+int main(int argc, char* argv[])
 {
   argparse::ArgumentParser program("spotify_volume_controller", VERSION);
   program.add_argument("-c", "--config").help("Config file to use. If omitted file in working directory is used");

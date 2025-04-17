@@ -43,7 +43,7 @@ void VolumeController::set_desktop_device()
   m_desktop_device_id = desktop;
 }
 
-[[nodiscard]] auto VolumeController::get_volume() const -> volume
+[[nodiscard]] volume VolumeController::get_volume() const
 {
   return m_volume;
 }
@@ -117,12 +117,12 @@ void VolumeController::print_keys()
   key_hooks::start_print_vkey();
 }
 
-[[nodiscard]] auto VolumeController::volume_up_keycode() const -> keycode
+[[nodiscard]] keycode VolumeController::volume_up_keycode() const 
 {
   return m_volume_up_keycode;
 }
 
-[[nodiscard]] auto VolumeController::volume_down_keycode() const -> keycode
+[[nodiscard]] keycode VolumeController::volume_down_keycode() const 
 {
   return m_volume_down_keycode;
 }

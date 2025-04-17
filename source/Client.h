@@ -20,30 +20,30 @@ class Client
 public:
   Client(token_t token_info, const Config& config);
 
-  [[nodiscard]] auto api_request(std::string_view endpoint) -> cpr::Response;
-  [[nodiscard]] auto put_api_request(std::string_view endpoint, const cpr::Payload& payload) -> cpr::Response;
+  [[nodiscard]] cpr::Response api_request(std::string_view endpoint);
+  [[nodiscard]] cpr::Response put_api_request(std::string_view endpoint, const cpr::Payload& payload);
 
   // Makes a request to the device endpoint
-  [[nodiscard]] auto get_devices() -> std::optional<json>;
+  [[nodiscard]] std::optional<json> get_devices();
 
-  [[nodiscard]] auto get_device_volume(std::string_view device_id) -> std::optional<volume>;
+  [[nodiscard]] std::optional<volume> get_device_volume(std::string_view device_id);
 
   // Sets the volume of device_id to *volume*
-  [[nodiscard]] auto set_device_volume(volume volume, const std::string& device_id = "") -> cpr::Response;
+  [[nodiscard]] cpr::Response set_device_volume(volume volume, const std::string& device_id = "");
 
   // Sets the volume of currently playing device to *volume*
-  [[nodiscard]] auto set_volume(volume volume) -> cpr::Response;
+  [[nodiscard]] cpr::Response set_volume(volume volume);
 
   // Returns the volume percent of the current playing device
-  auto get_current_playing_volume() -> std::optional<volume>;
+  std::optional<volume> get_current_playing_volume();
 
   // Returns the ID of the first desktop device found
-  [[nodiscard]] auto get_desktop_player_id() -> std::optional<std::string>;
+  [[nodiscard]] std::optional<std::string> get_desktop_player_id();
 
   static void print_error_message(const cpr::Response& response);
 
 private:
-  [[nodiscard]] auto get_token() -> std::string;
+  [[nodiscard]] std::string get_token();
 
   token_t m_token_info;
   Config m_config;

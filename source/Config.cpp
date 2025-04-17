@@ -94,25 +94,25 @@ void Config::parse_config_file(const std::filesystem::path& path)
   new_config_file.close();
 }
 
-auto Config::get_client_id() const -> std::string
+std::string Config::get_client_id() const
 {
   return m_config.at(client_id_key).template get<std::string>();
 }
-auto Config::get_client_secret() const -> std::string
+std::string Config::get_client_secret() const
 {
   return m_config.at(client_secret_key).template get<std::string>();
 }
-auto Config::get_redirect_url() const -> std::string
+std::string Config::get_redirect_url() const
 {
   return m_config.at(redirect_url_key).template get<std::string>();
 }
 
-auto Config::should_print_keys() const -> bool
+bool Config::should_print_keys() const
 {
   return m_config.at(print_keys_key).template get<bool>();
 }
 
-auto Config::get_volume_up() const -> keycode
+keycode Config::get_volume_up() const
 {
   if (!m_config.contains(volume_up_key)) {
     throw std::runtime_error(std::format("Missing {} config", volume_up_key));
@@ -124,7 +124,7 @@ auto Config::get_volume_up() const -> keycode
   return v_up.template get<keycode>();
 }
 
-auto Config::get_volume_down() const -> keycode
+keycode Config::get_volume_down() const
 {
   if (!m_config.contains(volume_down_key)) {
     throw std::runtime_error(fmt::format("Missing {} config", volume_down_key));
@@ -137,7 +137,7 @@ auto Config::get_volume_down() const -> keycode
   return v_down.template get<keycode>();
 }
 
-auto Config::is_default_down() const -> bool
+bool Config::is_default_down() const
 {
   if (!m_config.contains(volume_down_key)) {
     return false;
@@ -146,7 +146,7 @@ auto Config::is_default_down() const -> bool
   return v_down.is_string() && v_down.template get<std::string>() == "default";
 }
 
-auto Config::is_default_up() const -> bool
+bool Config::is_default_up() const
 {
   if (!m_config.contains(volume_down_key)) {
     return false;
@@ -155,12 +155,12 @@ auto Config::is_default_up() const -> bool
   return v_up.is_string() && v_up.template get<std::string>() == "default";
 }
 
-auto Config::is_valid() const -> bool
+bool Config::is_valid() const
 {
   return !m_config.is_null();
 }
 
-auto Config::hide_window() const -> bool
+bool Config::hide_window() const
 {
   if (!m_config.contains(hide_window_key)) {
     return false;
@@ -169,12 +169,12 @@ auto Config::hide_window() const -> bool
   return m_config.at(hide_window_key).template get<bool>();
 }
 
-[[nodiscard]] auto Config::config_directory() const -> std::filesystem::path
+[[nodiscard]] std::filesystem::path Config::config_directory() const
 {
   return m_directory;
 }
 
-auto Config::volume_increment() const -> volume
+volume Config::volume_increment() const
 {
   if (!m_config.contains(volume_increment_key.data())) {
     return volume(default_volume_increment);
@@ -183,7 +183,7 @@ auto Config::volume_increment() const -> volume
   return volume(m_config.at(volume_increment_key.data()).template get<volume_t>());
 }
 
-auto Config::batch_delay() const -> std::chrono::milliseconds
+std::chrono::milliseconds Config::batch_delay() const
 {
   return std::chrono::milliseconds(m_config.value(batch_delay_key, default_batch_delay.count()));
 }

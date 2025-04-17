@@ -7,11 +7,13 @@ Checks: "*,\
   -altera-*,\
   -fuchsia-*,\
   fuchsia-multiple-inheritance,\
+  fuchsia-trailing-return,\
   -llvm-header-guard,\
   -llvm-include-order,\
   -llvmlibc-*,\
   -modernize-use-nodiscard,\
-  -misc-non-private-member-variables-in-classes"
+  -misc-non-private-member-variables-in-classes,\
+  -modernize-use-trailing-return-type"
 WarningsAsErrors: ''
 CheckOptions:
   - key: 'bugprone-argument-comment.StrictMode'

@@ -20,28 +20,28 @@ public:
   Config();
   Config(const Config&) = default;
   Config(Config&&) = default;
-  auto operator=(const Config&) -> Config& = default;
-  auto operator=(Config&&) -> Config& = default;
+  Config& operator=(const Config&) = default;
+  Config& operator=(Config&&) = default;
   explicit Config(const std::string& path);
 
   ~Config() = default;
 
-  auto get_client_id() const -> std::string;
-  auto get_client_secret() const -> std::string;
-  auto get_redirect_url() const -> std::string;
-  auto get_volume_up() const -> keycode;
-  auto get_volume_down() const -> keycode;
-  auto volume_increment() const -> volume;
-  auto batch_delay() const -> std::chrono::milliseconds;
+  std::string get_client_id() const;
+  std::string get_client_secret() const;
+  std::string get_redirect_url() const;
+  keycode get_volume_up() const;
+  keycode get_volume_down() const;
+  volume volume_increment() const;
+  std::chrono::milliseconds batch_delay() const;
 
-  auto is_default_down() const -> bool;
-  auto is_default_up() const -> bool;
+  bool is_default_down() const;
+  bool is_default_up() const;
 
-  auto should_print_keys() const -> bool;
-  auto is_valid() const -> bool;
-  auto hide_window() const -> bool;
+  bool should_print_keys() const;
+  bool is_valid() const;
+  bool hide_window() const;
 
-  [[nodiscard]] auto config_directory() const -> std::filesystem::path;
+  [[nodiscard]] std::filesystem::path config_directory() const;
 
 private:
   static constexpr std::string_view default_callback_url = "http://localhost:5000/callback";

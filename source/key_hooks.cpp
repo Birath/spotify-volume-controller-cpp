@@ -17,7 +17,7 @@ namespace
 HHOOK hook;  // NOLINT
 std::unique_ptr<VolumeController> g_controller {};  // NOLINT
 
-auto CALLBACK volume_callback(int n_code, WPARAM w_param, LPARAM l_param) -> LRESULT
+LRESULT CALLBACK volume_callback(int n_code, WPARAM w_param, LPARAM l_param)
 {
   if (n_code < 0) {
     return CallNextHookEx(nullptr, n_code, w_param, l_param);
@@ -37,7 +37,7 @@ auto CALLBACK volume_callback(int n_code, WPARAM w_param, LPARAM l_param) -> LRE
   return CallNextHookEx(nullptr, n_code, w_param, l_param);
 }
 
-CALLBACK auto print_v_key(int n_code, WPARAM w_param, LPARAM l_param) -> LRESULT
+LRESULT CALLBACK print_v_key(int n_code, WPARAM w_param, LPARAM l_param)
 {
   if (n_code < 0) {
     return CallNextHookEx(nullptr, n_code, w_param, l_param);
