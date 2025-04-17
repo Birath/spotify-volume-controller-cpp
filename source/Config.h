@@ -33,6 +33,7 @@ public:
   keycode get_volume_down() const;
   volume volume_increment() const;
   std::chrono::milliseconds batch_delay() const;
+  std::chrono::milliseconds poll_rate() const;
 
   bool is_default_down() const;
   bool is_default_up() const;

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <filesystem>
@@ -26,9 +27,12 @@ constexpr std::string_view volume_increment_key = "volume_increment";
 constexpr std::string_view volume_up_key = "volume_up";
 constexpr std::string_view volume_down_key = "volume_down";
 constexpr std::string_view batch_delay_key = "batch_delay_ms";
+constexpr std::string_view poll_rate_key = "poll_rate_ms";
 
 constexpr std::chrono::milliseconds default_batch_delay {100};
 constexpr uint32_t default_volume_increment = 1;
+constexpr std::chrono::milliseconds default_poll_rate {250};
+constexpr std::chrono::milliseconds min_poll_rate {100};
 
 Config::Config()
 {
@@ -89,6 +93,7 @@ void Config::parse_config_file(const std::filesystem::path& path)
 
   m_config[volume_increment_key] = default_volume_increment;
   m_config[batch_delay_key] = default_batch_delay.count();
+  m_config[poll_rate_key] = default_poll_rate.count();
 
   new_config_file << m_config;
   new_config_file.close();
@@ -186,6 +191,11 @@ volume Config::volume_increment() const
 std::chrono::milliseconds Config::batch_delay() const
 {
   return std::chrono::milliseconds(m_config.value(batch_delay_key, default_batch_delay.count()));
+}
+
+std::chrono::milliseconds Config::poll_rate() const
+{
+  return std::max(std::chrono::milliseconds(m_config.value(poll_rate_key, default_poll_rate.count())), min_poll_rate);
 }
 
 void Config::get_user_input(const std::string_view prompt, std::string& input, bool not_empty)

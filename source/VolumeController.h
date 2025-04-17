@@ -50,9 +50,9 @@ public:
 
   void set_desktop_device();
 
-  [[nodiscard]] volume get_volume() const;
-  [[nodiscard]] keycode volume_up_keycode() const;
-  [[nodiscard]] keycode volume_down_keycode() const;
+  [[nodiscard]] volume get_volume() const { return m_volume; }
+  [[nodiscard]] keycode volume_up_keycode() const { return m_volume_up_keycode; }
+  [[nodiscard]] keycode volume_down_keycode() const { return m_volume_down_keycode; }
   void decrease_volume();
   void increase_volume();
 
@@ -63,14 +63,18 @@ private:
   void set_volume(volume new_volume);
   void set_volume_loop();
   void set_volume_to_desktop_device_volume();
+  void update_current_volume_loop();
   volume m_volume;
   const Config m_config;
   Client m_client;
   const keycode m_volume_up_keycode;
   const keycode m_volume_down_keycode;
   std::optional<std::string> m_desktop_device_id;
+
   std::thread m_client_thread;
+  std::jthread m_update_current_volume_thread;
   std::jthread m_notify_timer_thread;
+
   std::mutex m_volume_mutex;
   std::condition_variable m_volume_cv;
   std::queue<volume> m_volume_queue;
