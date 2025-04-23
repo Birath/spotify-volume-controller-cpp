@@ -18,7 +18,7 @@ using json = nlohmann::json;
 class Client
 {
 public:
-  Client(token_t token_info, const Config& config);
+  Client(token_t token_info, Config config);
 
   [[nodiscard]] cpr::Response api_request(std::string_view endpoint);
   [[nodiscard]] cpr::Response put_api_request(std::string_view endpoint, const cpr::Payload& payload);

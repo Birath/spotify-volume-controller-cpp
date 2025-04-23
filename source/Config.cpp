@@ -117,7 +117,7 @@ keycode Config::get_volume_up() const
   if (!m_config.contains(volume_up_key)) {
     throw std::runtime_error(std::format("Missing {} config", volume_up_key));
   }
-  json const v_up = m_config.at(volume_down_key);
+  json const v_up = m_config.at(volume_up_key);
   if (!v_up.is_number_integer()) {
     throw std::runtime_error(fmt::format("{} config is not a valid keycode", volume_up_key));
   }
@@ -148,10 +148,10 @@ bool Config::is_default_down() const
 
 bool Config::is_default_up() const
 {
-  if (!m_config.contains(volume_down_key)) {
+  if (!m_config.contains(volume_up_key)) {
     return false;
   }
-  json const v_up = m_config.at(volume_down_key);
+  json const v_up = m_config.at(volume_up_key);
   return v_up.is_string() && v_up.template get<std::string>() == "default";
 }
 

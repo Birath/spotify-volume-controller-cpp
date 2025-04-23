@@ -27,9 +27,9 @@ using json = nlohmann::json;
 
 constexpr std::string_view api_url {"https://api.spotify.com"};
 
-Client::Client(token_t token_info, const Config& config)
+Client::Client(token_t token_info, Config config)
     : m_token_info(std::move(token_info))
-    , m_config(config)
+    , m_config(std::move(config))
 {
 }
 
