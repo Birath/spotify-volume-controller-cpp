@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "spotify-volume-controller",
   "version-semver": "0.1.8",
   "dependencies": [
@@ -13,7 +14,8 @@
     "cpr",
     "argparse",
     "nlohmann-json",
-    "cpp-httplib"
+    "cpp-httplib",
+    "libx11"
   ],
   "default-features": [],
   "features": {

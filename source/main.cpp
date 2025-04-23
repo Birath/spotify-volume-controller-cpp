@@ -5,8 +5,11 @@
 
 #include <argparse/argparse.hpp>
 #include <fmt/core.h>
-#define WIN32_LEAN_AND_MEAN  // Exclude rarely-used stuff from Windows headers
-#include <windows.h>
+#ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN  // Exclude rarely-used stuff from Windows headers
+#  include <wincon.h>
+#  include <windows.h>
+#endif
 
 #include "Client.h"
 #include "Config.h"
@@ -40,6 +43,12 @@ int main(int argc, char* argv[])
     std::cin.get();
     return 1;
   }
+
+  if (config.should_print_keys()) {
+    spotify_volume_controller::VolumeController::print_keys();
+    return 0;
+  }
+
   std::optional<spotify_volume_controller::token_t> token = spotify_volume_controller::oauth::get_token(config);
   if (!token.has_value()) {
     fmt::println(stderr, "Failed to connect to Spotify, exiting...");
@@ -50,13 +59,11 @@ int main(int argc, char* argv[])
 
   fmt::println("Connected to spotify successfully!");
   if (config.hide_window()) {
+#ifdef _WIN32
     FreeConsole();
+#endif
   }
   spotify_volume_controller::VolumeController controller(config, client);
-  if (config.should_print_keys()) {
-    spotify_volume_controller::VolumeController::print_keys();
-  } else {
-    controller.start();
-  }
+  controller.start();
   return 0;
 }

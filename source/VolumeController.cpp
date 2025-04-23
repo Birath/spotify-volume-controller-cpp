@@ -11,8 +11,9 @@
 #include <cpr/status_codes.h>
 #include <fmt/core.h>
 #include <nlohmann/json_fwd.hpp>
-#include <winuser.h>
-
+#ifdef _WIN32
+#  include <winuser.h>
+#endif
 #include "Client.h"
 #include "Config.h"
 #include "data_types.h"
@@ -22,13 +23,19 @@ namespace spotify_volume_controller
 {
 // for convenience
 using json = nlohmann::json;
+#ifdef _WIN32
+constexpr keycode default_up_keycode = VK_VOLUME_UP;
+constexpr keycode default_down_keycode = VK_VOLUME_DOWN;
+#endif
+constexpr keycode default_up_keycode = 100;
+constexpr keycode default_down_keycode = 101;
 
 VolumeController::VolumeController(const Config& config, Client& client)
     : m_volume()
     , m_config(config)
     , m_client(client)
-    , m_volume_up_keycode(config.is_default_up() ? VK_VOLUME_UP : config.get_volume_up())
-    , m_volume_down_keycode(config.is_default_down() ? VK_VOLUME_DOWN : config.get_volume_down())
+    , m_volume_up_keycode(config.is_default_up() ? default_up_keycode : config.get_volume_up())
+    , m_volume_down_keycode(config.is_default_down() ? default_down_keycode : config.get_volume_down())
     , m_client_thread(std::thread(&VolumeController::set_volume_loop, this))
     , m_update_current_volume_thread(std::jthread(&VolumeController::update_current_volume_loop, this))
 {
