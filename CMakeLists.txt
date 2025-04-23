@@ -18,6 +18,7 @@ find_package(nlohmann_json REQUIRED)
 find_package(fmt REQUIRED)
 find_package(cpr REQUIRED)
 find_package(httplib REQUIRED)
+find_package(X11 REQUIRED)
 
 # ---- Declare library ----
 
@@ -38,8 +39,7 @@ target_include_directories(
 
 target_compile_features(spotify_volume_controller_lib PUBLIC cxx_std_23)
 target_compile_definitions(spotify_volume_controller_lib PRIVATE _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS=1)
-target_link_libraries(spotify_volume_controller_lib PRIVATE  nlohmann_json::nlohmann_json fmt::fmt cpr::cpr httplib::httplib)
-
+target_link_libraries(spotify_volume_controller_lib PRIVATE nlohmann_json::nlohmann_json fmt::fmt cpr::cpr httplib::httplib X11::X11)
 set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
 
 # ---- Declare executable ----

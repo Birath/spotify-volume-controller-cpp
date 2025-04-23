@@ -1,17 +1,25 @@
 #include <bit>
+#include <memory>
 #include <utility>
 
 #include "key_hooks.h"
 
 #include <fmt/core.h>
-#include <libloaderapi.h>
-#include <minwindef.h>
-#include <windef.h>
-#include <winuser.h>
 
+#ifdef __linux__
+#  include <X11/Xlib.h>
+#endif
+
+#ifdef _WIN32
+#  include <libloaderapi.h>
+#  include <minwindef.h>
+#  include <windef.h>
+#  include <winuser.h>
+#endif
 #include "VolumeController.h"
 namespace spotify_volume_controller::key_hooks
 {
+#ifdef _WIN32
 namespace
 {
 HHOOK hook;  // NOLINT
@@ -69,5 +77,57 @@ void start_print_vkey()
 
   UnhookWindowsHookEx(hook);
 }
+#endif
 
+Display* create_display()
+{
+  Display* display = XOpenDisplay(nullptr);
+  int screen = XDefaultScreen(display);
+  Window window = XCreateSimpleWindow(display,
+                                      RootWindow(display, screen),
+                                      10,
+                                      10,
+                                      200,
+                                      200,
+                                      1,
+                                      BlackPixel(display, screen),
+                                      WhitePixel(display, screen));
+  XSelectInput(display, window, KeyPressMask);
+  XMapWindow(display, window);
+  return display;
+}
+
+void start_volume_hook(std::unique_ptr<VolumeController> controller)
+{
+  Display* display = create_display();
+  while (true) {
+    XEvent event;
+    XNextEvent(display, &event);
+
+    /* keyboard events */
+    if (event.type == KeyPress) {
+      if (event.xkey.keycode == controller->volume_down_keycode()) {
+        controller->decrease_volume();
+      } else if (event.xkey.keycode == controller->volume_up_keycode()) {
+        controller->increase_volume();
+      }
+    }
+  }
+}
+void start_print_vkey()
+{
+  Display* display = create_display();
+  while (true) {
+    XEvent event;
+    XNextEvent(display, &event);
+
+    /* keyboard events */
+    if (event.type == KeyPress) {
+      fmt::println("KeyPress: {}", event.xkey.keycode);
+      /* exit on ESC key press */
+      if (event.xkey.keycode == 0x09)
+        break;
+    }
+  }
+}
 }  // namespace spotify_volume_controller::key_hooks
