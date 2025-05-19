@@ -4,7 +4,7 @@ include(cmake/prelude.cmake)
 
 project(
     spotify_volume_controller
-    VERSION 0.1.7
+    VERSION 0.1.8
     DESCRIPTION "A program to hook volume keys directly to Spotify"
     HOMEPAGE_URL "https://github.com/Birath/spotify-volume-controller-cpp"
     LANGUAGES CXX

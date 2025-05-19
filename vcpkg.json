@@ -1,6 +1,6 @@
 {
   "name": "spotify-volume-controller",
-  "version-semver": "0.1.7",
+  "version-semver": "0.1.8",
   "dependencies": [
     {
       "name": "fmt",
