@@ -1,13 +1,15 @@
 #include <chrono>
-#include <future>
+#include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 
 #include "VolumeController.h"
 
-#include <cpr/cpr.h>
-#include <nlohmann/json.hpp>
+#include <cpr/response.h>
+#include <cpr/status_codes.h>
+#include <nlohmann/json_fwd.hpp>
 #include <winuser.h>
 
 #include "Client.h"
@@ -19,10 +21,10 @@ namespace spotify_volume_controller
 {
 // for convenience
 using json = nlohmann::json;
-using namespace std::chrono_literals;
 
 VolumeController::VolumeController(const Config& config, Client& client)
-    : m_config(config)
+    : m_volume()
+    , m_config(config)
     , m_client(client)
     , m_volume_up_keycode(config.is_default_up() ? VK_VOLUME_UP : config.get_volume_up())
     , m_volume_down_keycode(config.is_default_down() ? VK_VOLUME_DOWN : config.get_volume_down())
@@ -30,11 +32,11 @@ VolumeController::VolumeController(const Config& config, Client& client)
 {
 }
 
-VolumeController::~VolumeController() {}
+VolumeController::~VolumeController() = default;
 
 void VolumeController::set_desktop_device()
 {
-  std::optional<std::string> desktop = m_client.get_desktop_player_id();
+  std::optional<std::string> const desktop = m_client.get_desktop_player_id();
   if (!desktop.has_value()) {
     return;
   }
@@ -49,12 +51,12 @@ void VolumeController::set_desktop_device()
 void VolumeController::decrease_volume()
 {
   {
-    std::unique_lock lk(m_volume_mutex);
+    std::unique_lock const lock(m_volume_mutex);
     // Assume that the API call will succeed
     m_volume = m_volume - m_config.volume_increment();
     m_volume_queue.push(m_volume);
   }
-  if (m_config.batch_delay() > 0ms) {
+  if (m_config.batch_delay() > std::chrono::milliseconds(0)) {
     m_notify_timer.start([this]() { m_volume_cv.notify_one(); }, m_config.batch_delay());
   } else {
     m_volume_cv.notify_one();
@@ -64,19 +66,20 @@ void VolumeController::decrease_volume()
 void VolumeController::increase_volume()
 {
   {
-    std::unique_lock lk(m_volume_mutex);
+    std::unique_lock const lock(m_volume_mutex);
     // Assume that the API call will succeed
     m_volume = m_volume + m_config.volume_increment();
     m_volume_queue.push(m_volume);
   }
-  if (m_config.batch_delay() > 0ms) {
+  if (m_config.batch_delay() > std::chrono::milliseconds(0)) {
     m_notify_timer.start([this]() { m_volume_cv.notify_one(); }, m_config.batch_delay());
   } else {
     m_volume_cv.notify_one();
   }
 }
 
-void VolumeController::set_volume_to_desktop_device_volume() {
+void VolumeController::set_volume_to_desktop_device_volume()
+{
   if (!m_desktop_device_id.has_value()) {
     set_desktop_device();
   }
@@ -100,13 +103,13 @@ void VolumeController::set_volume(const volume new_volume)
   if (result.status_code == cpr::status::HTTP_NO_CONTENT) {
     return;
   }
-  m_client.print_error_message(result);
+  Client::print_error_message(result);
 }
 
 void VolumeController::start()
 {
   set_volume_to_desktop_device_volume();
-  key_hooks::start_volume_hook(this);
+  key_hooks::start_volume_hook(std::unique_ptr<VolumeController>(this));
 }
 
 void VolumeController::print_keys()
@@ -114,12 +117,12 @@ void VolumeController::print_keys()
   key_hooks::start_print_vkey();
 }
 
-[[nodiscard]] keycode VolumeController::volume_up_keycode() const
+[[nodiscard]] keycode VolumeController::volume_up_keycode() const 
 {
   return m_volume_up_keycode;
 }
 
-[[nodiscard]] keycode VolumeController::volume_down_keycode() const
+[[nodiscard]] keycode VolumeController::volume_down_keycode() const 
 {
   return m_volume_down_keycode;
 }
@@ -127,8 +130,8 @@ void VolumeController::print_keys()
 void VolumeController::set_volume_loop()
 {
   while (true) {
-    std::unique_lock lk(m_volume_mutex);
-    m_volume_cv.wait(lk, [&] { return !m_volume_queue.empty(); });
+    std::unique_lock lock(m_volume_mutex);
+    m_volume_cv.wait(lock, [&] { return !m_volume_queue.empty(); });
     volume new_volume {0};
     while (!m_volume_queue.empty()) {
       new_volume = m_volume_queue.front();

@@ -1,6 +1,10 @@
 #pragma once
 
+#include <cstdint>
+#include <string>
+
 #include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 namespace spotify_volume_controller
 {
@@ -8,25 +12,32 @@ namespace spotify_volume_controller
 using keycode = unsigned int;
 using volume_t = unsigned int;
 
-constexpr volume_t max_volume{100};
+constexpr volume_t max_volume {100};
 
 struct volume
 {
-  volume(volume_t v)
-      : m_volume(v)
+  volume(const volume&) = default;
+  volume(volume&&) = default;
+  volume& operator=(const volume&) = default;
+  volume& operator=(volume&&) = default;
+  ~volume() = default;
+  volume() = default;
+
+  explicit volume(volume_t vol)
+      : m_volume(vol)
   {
   }
 
   volume_t m_volume;
 
-  [[nodiscard]] volume_t operator-(const volume other) const
+  [[nodiscard]] volume operator-(const volume other) const
   {
-    return m_volume < other.m_volume ? 0 : m_volume - other.m_volume;
+    return volume(m_volume < other.m_volume ? 0 : m_volume - other.m_volume);
   }
 
-  [[nodiscard]] volume_t operator+(const volume other) const
+  [[nodiscard]] volume operator+(const volume other) const
   {
-    return m_volume + other.m_volume > max_volume ? max_volume : m_volume + other.m_volume;
+    return volume(m_volume + other.m_volume > max_volume ? max_volume : m_volume + other.m_volume);
   }
 
   volume& operator++()
@@ -61,7 +72,7 @@ struct volume
     return old;
   }
 
-  operator volume_t() const { return m_volume; }
+  explicit operator volume_t() const { return m_volume; }
 };
 
 struct token_t
@@ -69,22 +80,23 @@ struct token_t
   std::string access_token;
   std::string token_type;
   std::string scope;
-  std::uint64_t expires_in;
+  std::int64_t expires_in;
   std::string refresh_token;
-  std::uint64_t expires_at;
+  std::int64_t expires_at;
 
-  token_t(nlohmann::json j_token)
+  explicit token_t(nlohmann::json j_token)
       : access_token {j_token["access_token"].template get<std::string>()}
       , token_type {j_token["token_type"].template get<std::string>()}
       , scope {j_token["scope"].template get<std::string>()}
-      , expires_in {j_token["expires_in"].template get<std::uint64_t>()}
+      , expires_in {j_token["expires_in"].template get<std::int64_t>()}
       , refresh_token {j_token["refresh_token"].is_string() ? j_token["refresh_token"].template get<std::string>() : ""}
-      , expires_at {j_token.contains("expires_at") ? j_token["expires_at"].template get<std::uint64_t>() : 0}
+      , expires_at {j_token.contains("expires_at") ? j_token["expires_at"].template get<std::int64_t>() : 0}
   {
   }
 
-  [[nodiscard]] nlohmann::json as_json() const {
-    nlohmann::json j_token{};
+  [[nodiscard]] nlohmann::json as_json() const
+  {
+    nlohmann::json j_token {};
     j_token["access_token"] = access_token;
     j_token["token_type"] = token_type;
     j_token["scope"] = scope;

@@ -1,43 +1,54 @@
-#include <codecvt>
 #include <iostream>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
 
 #include "Client.h"
 
-#include <cpr/cpr.h>
-#include <fmt/format.h>
+#include <cpr/api.h>
+#include <cpr/cprtypes.h>
+#include <cpr/parameters.h>
+#include <cpr/payload.h>
+#include <cpr/response.h>
+#include <cpr/status_codes.h>
+#include <fmt/core.h>
 #include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 
+#include "Config.h"
+#include "data_types.h"
 #include "oauth.h"
 
-// for convenience
-using json = nlohmann::json;
 namespace spotify_volume_controller
 {
+// for convenience
+using json = nlohmann::json;
 
-constexpr std::string_view API_URL {"https://api.spotify.com"};
+constexpr std::string_view api_url {"https://api.spotify.com"};
 
 Client::Client(token_t token_info, const Config& config)
-    : m_token_info(token_info)
+    : m_token_info(std::move(token_info))
     , m_config(config)
 {
 }
 
 [[nodiscard]] cpr::Response Client::api_request(const std::string_view endpoint)
 {
-  cpr::Url url {fmt::format("{}{}", API_URL, endpoint)};
+  cpr::Url const url {fmt::format("{}{}", api_url, endpoint)};
 
   return cpr::Get(url, cpr::Bearer {get_token()});
 }
 
 [[nodiscard]] cpr::Response Client::put_api_request(const std::string_view endpoint, const cpr::Payload& payload)
 {
-  cpr::Url url {fmt::format("{}{}", API_URL, endpoint)};
+  cpr::Url const url {fmt::format("{}{}", api_url, endpoint)};
   return cpr::Put(url, payload, cpr::Bearer {get_token()});
 }
 
 [[nodiscard]] std::optional<json> Client::get_devices()
 {
-  cpr::Response response = api_request("/v1/me/player/devices");
+  cpr::Response const response = api_request("/v1/me/player/devices");
   if (response.status_code != cpr::status::HTTP_OK) {
     print_error_message(response);
     return {};
@@ -46,15 +57,16 @@ Client::Client(token_t token_info, const Config& config)
   return response_body.at("devices");
 }
 
-[[nodiscard]] std::optional<volume> Client::get_device_volume(const std::string_view id)
+[[nodiscard]] std::optional<volume> Client::get_device_volume(const std::string_view device_id)
 {
   std::optional<json> devices = get_devices();
-  if (!devices.has_value())
+  if (!devices.has_value()) {
     return {};
+  }
 
   for (auto&& device : devices.value()) {
-    if (device.contains("id") && id == device.at("id").template get<std::string>()) {
-      return device.contains("volume_percent") ? device["volume_percent"].template get<std::uint32_t>()
+    if (device.contains("id") && device_id == device.at("id").template get<std::string>()) {
+      return device.contains("volume_percent") ? volume(device["volume_percent"].template get<volume_t>())
                                                : std::optional<volume> {};
     }
   }
@@ -67,7 +79,7 @@ Client::Client(token_t token_info, const Config& config)
   if (!device_id.empty()) {
     payload.Add(cpr::Parameter {"device_id", device_id});
   }
-  cpr::Url url {fmt::format("{}/{}", API_URL, "v1/me/player/volume")};
+  cpr::Url const url {fmt::format("{}/{}", api_url, "v1/me/player/volume")};
   return cpr::Put(url, payload, cpr::Bearer {get_token()}, cpr::Header {{"Content-Length", "0"}});
 }
 
@@ -79,14 +91,16 @@ Client::Client(token_t token_info, const Config& config)
 std::optional<volume> Client::get_current_playing_volume()
 {
   std::optional<json> devices = get_devices();
-  if (!devices.has_value())
+  if (!devices.has_value()) {
     return {};
+  }
 
   for (auto&& device : devices.value()) {
     if (device.at("is_active").template get<bool>()) {
       // Volume percentage may be null according to documentation
-      if (device["volume_percent"].is_number_integer())
-        return device["volume_percent"].template get<std::uint32_t>();
+      if (device["volume_percent"].is_number_integer()) {
+        return volume(device["volume_percent"].template get<volume_t>());
+      }
     }
   }
   return {};
@@ -95,12 +109,14 @@ std::optional<volume> Client::get_current_playing_volume()
 [[nodiscard]] std::optional<std::string> Client::get_desktop_player_id()
 {
   std::optional<json> devices = get_devices();
-  if (!devices.has_value())
+  if (!devices.has_value()) {
     return {};
+  }
 
   for (auto&& device : devices.value()) {
-    if (device["type"].template get<std::string>() == "Computer")
+    if (device["type"].template get<std::string>() == "Computer") {
       return device.at("id").template get<std::string>();
+    }
   }
   return {};
 }
@@ -114,17 +130,10 @@ std::optional<volume> Client::get_current_playing_volume()
   return m_token_info.access_token;
 }
 
-void Client::print_error_message(const cpr::Response& response) const
+void Client::print_error_message(const cpr::Response& response)
 {
-  // web::json::value body = get_json_response_body(response.text);
-  // web::json::value error_body = body[L"error"];
-  // std::cerr << "Status code: " << response.error.code << '\n';
-
   std::cerr << "Error message: " << response.error.message << '\n';
-  // if (error_body.has_string_field(L"reason")) {
-  std::cerr << "Reason: " << response.reason;
-  // }
-  std::cerr << std::endl;
+  std::cerr << "Reason: " << response.reason << '\n';
 }
 
 }  // namespace spotify_volume_controller
