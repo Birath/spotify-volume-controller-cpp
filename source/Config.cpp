@@ -33,6 +33,7 @@ constexpr std::chrono::milliseconds default_batch_delay {100};
 constexpr uint32_t default_volume_increment = 1;
 constexpr std::chrono::milliseconds default_poll_rate {250};
 constexpr std::chrono::milliseconds min_poll_rate {100};
+constexpr std::string_view default_callback_url = "http://127.0.0.1:5000/callback";
 
 Config::Config()
 {
@@ -68,10 +69,9 @@ void Config::parse_config_file(const std::filesystem::path& path)
   get_user_input("Please enter your spotify client secret", input, /*not_empty=*/true);
   m_config[client_secret_key] = input;
 
-  get_user_input(fmt::format("Enter callback url, or leave empty for default ({}).", Config::default_callback_url),
-                 input);
+  get_user_input(fmt::format("Enter callback url, or leave empty for default ({}).", default_callback_url), input);
   if (input.empty()) {
-    m_config[redirect_url_key] = Config::default_callback_url;
+    m_config[redirect_url_key] = default_callback_url;
   } else {
     m_config[redirect_url_key] = input;
   }
