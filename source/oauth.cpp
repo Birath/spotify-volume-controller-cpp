@@ -19,6 +19,7 @@
 #include <cpr/parameters.h>
 #include <cpr/payload.h>
 #include <cpr/response.h>
+#include <cpr/status_codes.h>
 #include <curl/curl.h>
 #include <curl/urlapi.h>
 #include <fmt/core.h>
@@ -90,18 +91,6 @@ void open_uri(const std::string_view uri)
 [[nodiscard]] std::optional<std::string> get_authorization_code(const std::string& callback_address,
                                                                 const Config& config)
 {
-  cpr::CurlHolder const curl_holder {};
-  cpr::Parameters const params = {{"client_id", config.get_client_id()},
-                                  {"redirect_uri", config.get_redirect_url()},
-                                  {"response_type", "code"},
-                                  {"scope", std::string(scopes)},
-                                  {"show_dialog", "true"}};
-
-  std::string const auth_url = fmt::format("{}?{}", authorization_url, params.GetContent(curl_holder));
-  std::cout << "Please accept the prompt in your browser." << '\n';
-  std::cout << "If your browser did not open, please go to the following link to accept the prompt:" << '\n';
-  std::cout << auth_url << '\n';
-  open_uri(auth_url);
   std::string host {};
   int port = 0;
   std::string part;
@@ -151,23 +140,39 @@ void open_uri(const std::string_view uri)
     }
     curl_url_cleanup(url_handle);
   }
-
+  {
+    cpr::CurlHolder const curl_holder {};
+    cpr::Parameters const params = {{"client_id", config.get_client_id()},
+                                    {"redirect_uri", config.get_redirect_url()},
+                                    {"response_type", "code"},
+                                    {"scope", std::string(scopes)},
+                                    {"show_dialog", "true"}};
+    std::string const auth_url = fmt::format("{}?{}", authorization_url, params.GetContent(curl_holder));
+    std::cout << "Please accept the prompt in your browser." << '\n';
+    std::cout << "If your browser did not open, please go to the following link to accept the prompt:" << '\n';
+    std::cout << auth_url << '\n';
+    open_uri(auth_url);
+  }
   std::string authorization_code {};
   {
     std::thread stop_thread;
     httplib::Server server;
     server.Get(part,
-               [&](const httplib::Request& req, httplib::Response res)
+               [&](const httplib::Request& req, httplib::Response& res)
                {
                  if (req.has_param("code")) {
                    authorization_code = req.get_param_value("code");
-                   res.set_content("Successfully authenticated", "text/plain");
+                   res.set_content("<h1>Successfully authenticated</h1><br><p>You can close this tab</p>", "text/html");
                  } else if (req.has_param("error")) {
                    std::cerr << "Failed to get authorization code: " << req.get_param_value("error") << '\n';
-                   res.set_content("Failed to authenticate, check logs", "text/plain");
+                   res.set_content(fmt::format("<h1>Failed to authenticate due to error \"{}\". Check logs</h1>",
+                                               req.get_param_value("error")),
+                                   "text/html");
+                   res.status = cpr::status::HTTP_INTERNAL_SERVER_ERROR;
                  } else {
-                   std::cerr << "Failed to get authorization code: Unkown error" << '\n';
-                   res.set_content("Failed to authenticate, check logs", "text/plain");
+                   std::cerr << "Failed to get authorization code: Unknown error" << '\n';
+                   res.set_content("<h1>Failed to authenticate due to unkown error. Check logs</h1>", "text/html");
+                   res.status = cpr::status::HTTP_INTERNAL_SERVER_ERROR;
                  }
                  // Based on https://github.com/yhirose/cpp-httplib/blob/master/example/one_time_request.cc
                  stop_thread = std::thread([&]() { server.stop(); });

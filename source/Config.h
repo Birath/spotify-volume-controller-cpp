@@ -45,7 +45,6 @@ public:
   [[nodiscard]] std::filesystem::path config_directory() const;
 
 private:
-  static constexpr std::string_view default_callback_url = "http://localhost:5000/callback";
   json m_config;
   std::filesystem::path m_directory;
 
