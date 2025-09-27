@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <cstdio>
 #include <filesystem>
-#include <format>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -27,12 +27,12 @@ constexpr std::string_view volume_increment_key = "volume_increment";
 constexpr std::string_view volume_up_key = "volume_up";
 constexpr std::string_view volume_down_key = "volume_down";
 constexpr std::string_view batch_delay_key = "batch_delay_ms";
-constexpr std::string_view poll_rate_key = "poll_rate_ms";
+constexpr std::string_view fetch_cooldown_key = "fetch_cooldown_ms";
 
 constexpr std::chrono::milliseconds default_batch_delay {100};
 constexpr uint32_t default_volume_increment = 1;
-constexpr std::chrono::milliseconds default_poll_rate {250};
-constexpr std::chrono::milliseconds min_poll_rate {100};
+constexpr std::chrono::milliseconds default_fetch_cooldown {2000};
+constexpr std::chrono::milliseconds min_fetch_cooldown {100};
 constexpr std::string_view default_callback_url = "http://127.0.0.1:5000/callback";
 
 Config::Config()
@@ -53,13 +53,12 @@ void Config::parse_config_file(const std::filesystem::path& path)
     try {
       m_config = json::parse(config_file);
     } catch (const json::exception& e) {
-      std::cout << "Invalid config file." << '\n';
-      std::cerr << e.what() << '\n';
+      fmt::println(stderr, "Invalid config file: {}", e.what());
       m_config = json {};
     }
     return;
   }
-  std::cout << "No config file found, creating." << '\n';
+  fmt::println("No config file found, creating.");
   std::ofstream new_config_file(m_directory / "config.json");
   std::string input {};
 
@@ -93,7 +92,7 @@ void Config::parse_config_file(const std::filesystem::path& path)
 
   m_config[volume_increment_key] = default_volume_increment;
   m_config[batch_delay_key] = default_batch_delay.count();
-  m_config[poll_rate_key] = default_poll_rate.count();
+  m_config[fetch_cooldown_key] = default_fetch_cooldown.count();
 
   new_config_file << m_config;
   new_config_file.close();
@@ -120,7 +119,7 @@ bool Config::should_print_keys() const
 keycode Config::get_volume_up() const
 {
   if (!m_config.contains(volume_up_key)) {
-    throw std::runtime_error(std::format("Missing {} config", volume_up_key));
+    throw std::runtime_error(fmt::format("Missing {} config", volume_up_key));
   }
   json const v_up = m_config.at(volume_down_key);
   if (!v_up.is_number_integer()) {
@@ -137,7 +136,7 @@ keycode Config::get_volume_down() const
   json const v_down = m_config.at(volume_down_key);
 
   if (!v_down.is_number_integer()) {
-    throw std::runtime_error(std::format("{} config is not a valid keycode", volume_down_key));
+    throw std::runtime_error(fmt::format("{} config is not a valid keycode", volume_down_key));
   }
   return v_down.template get<keycode>();
 }
@@ -193,18 +192,19 @@ std::chrono::milliseconds Config::batch_delay() const
   return std::chrono::milliseconds(m_config.value(batch_delay_key, default_batch_delay.count()));
 }
 
-std::chrono::milliseconds Config::poll_rate() const
+std::chrono::milliseconds Config::fetch_cooldown() const
 {
-  return std::max(std::chrono::milliseconds(m_config.value(poll_rate_key, default_poll_rate.count())), min_poll_rate);
+  return std::max(std::chrono::milliseconds(m_config.value(fetch_cooldown_key, default_fetch_cooldown.count())),
+                  min_fetch_cooldown);
 }
 
 void Config::get_user_input(const std::string_view prompt, std::string& input, bool not_empty)
 {
   input.clear();
-  std::cout << prompt << '\n';
+  fmt::println("{}", prompt);
   std::getline(std::cin, input);
   while (not_empty && input.empty()) {
-    std::cout << "Input can't be empty" << '\n';
+    fmt::println("Input can't be empty");
     std::getline(std::cin, input);
   }
 }

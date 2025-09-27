@@ -148,9 +148,8 @@ void open_uri(const std::string_view uri)
                                     {"scope", std::string(scopes)},
                                     {"show_dialog", "true"}};
     std::string const auth_url = fmt::format("{}?{}", authorization_url, params.GetContent(curl_holder));
-    std::cout << "Please accept the prompt in your browser." << '\n';
-    std::cout << "If your browser did not open, please go to the following link to accept the prompt:" << '\n';
-    std::cout << auth_url << '\n';
+    fmt::println("Please accept the prompt in your browser.");
+    fmt::println("If your browser did not open, please go to the following link to accept the prompt: {}", auth_url);
     open_uri(auth_url);
   }
   std::string authorization_code {};
@@ -164,13 +163,13 @@ void open_uri(const std::string_view uri)
                    authorization_code = req.get_param_value("code");
                    res.set_content("<h1>Successfully authenticated</h1><br><p>You can close this tab</p>", "text/html");
                  } else if (req.has_param("error")) {
-                   std::cerr << "Failed to get authorization code: " << req.get_param_value("error") << '\n';
+                   fmt::println(stderr, "Failed to get authorization code: {}", req.get_param_value("error"));
                    res.set_content(fmt::format("<h1>Failed to authenticate due to error \"{}\". Check logs</h1>",
                                                req.get_param_value("error")),
                                    "text/html");
                    res.status = cpr::status::HTTP_INTERNAL_SERVER_ERROR;
                  } else {
-                   std::cerr << "Failed to get authorization code: Unknown error" << '\n';
+                   fmt::println(stderr, "Failed to get authorization code: Unknown error");
                    res.set_content("<h1>Failed to authenticate due to unkown error. Check logs</h1>", "text/html");
                    res.status = cpr::status::HTTP_INTERNAL_SERVER_ERROR;
                  }
@@ -224,10 +223,10 @@ void open_uri(const std::string_view uri)
 
 [[nodiscard]] std::optional<token_t> get_token(const Config& config)
 {
-  std::cout << "Getting authorization token..." << '\n';
+  fmt::println("Getting authorization token...");
   std::optional<token_t> token = read_token(config.config_directory());
   if (!token.has_value()) {
-    std::cout << "No existing token found, creating new" << '\n';
+    fmt::println("No existing token found, creating new");
     std::optional<std::string> const authorization_code = get_authorization_code(config.get_redirect_url(), config);
     if (!authorization_code.has_value() || authorization_code->empty()) {
       return {};
@@ -244,11 +243,11 @@ void open_uri(const std::string_view uri)
 {
   json j_new_token = fetch_token(token.refresh_token, grant_type::refresh_token, config);
   if (j_new_token.contains("error")) {
-    std::cout << "Failed to refresh token." << '\n';
-    std::cout << "Error: " << j_new_token["error"] << '\n';
-    std::cout << "Error description: " << j_new_token["error_description"] << '\n';
+    fmt::println(stderr, "Failed to refresh token.");
+    fmt::println(stderr, "Error: {}", j_new_token["error"].dump());
+    fmt::println(stderr, "Error description: {}", j_new_token["error_description"].dump());
     if (j_new_token["error"].template get<std::string>() == "invalid_client") {
-      std::cout << "Check that the client id/secret is correct." << '\n';
+      fmt::println(stderr, "Check that the client id/secret is correct.");
     }
     std::cin.get();
     exit(1);
@@ -276,8 +275,7 @@ void save_token(const token_t& token, const std::filesystem::path& token_directo
     token_file << token.as_json();
     token_file.close();
   } else {
-    std::cerr << "Failed to write token to file"
-              << "\n";
+    fmt::println(stderr, "Failed to write token to file");
   }
 }
 
@@ -288,8 +286,7 @@ std::optional<token_t> read_token(const std::filesystem::path& token_directory)
   if (token_file) {
     return {token_t(json::parse(token_file))};
   }
-  std::cerr << "Failed to read token from file"
-            << "\n";
+  fmt::println(stderr, "Failed to read token to file");
   return {};
 }
 

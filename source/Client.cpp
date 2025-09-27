@@ -132,8 +132,11 @@ std::optional<volume> Client::get_current_playing_volume()
 
 void Client::print_error_message(const cpr::Response& response)
 {
-  std::cerr << "Error message: " << response.error.message << '\n';
-  std::cerr << "Reason: " << response.reason << '\n';
+  fmt::println(stderr, "Error when requesting {} [{}]", response.url.str(), response.status_code);
+  if (!response.error.message.empty()) {
+    fmt::println("Error message: {}", response.error.message);
+  }
+  fmt::println("Reason: {}", response.reason);
 }
 
 }  // namespace spotify_volume_controller

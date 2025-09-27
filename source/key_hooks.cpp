@@ -1,9 +1,9 @@
 #include <bit>
-#include <iostream>
 #include <utility>
 
 #include "key_hooks.h"
 
+#include <fmt/core.h>
 #include <libloaderapi.h>
 #include <minwindef.h>
 #include <windef.h>
@@ -44,7 +44,7 @@ LRESULT CALLBACK print_v_key(int n_code, WPARAM w_param, LPARAM l_param)
   }
   if (w_param == WM_KEYDOWN) {
     auto* keyboard_struct = std::bit_cast<KBDLLHOOKSTRUCT*>(l_param);
-    std::cout << keyboard_struct->vkCode << '\n';
+    fmt::println("{}", keyboard_struct->vkCode);
   }
   return CallNextHookEx(nullptr, n_code, w_param, l_param);
 }
