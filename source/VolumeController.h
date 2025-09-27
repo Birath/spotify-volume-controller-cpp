@@ -77,7 +77,11 @@ private:
 
   std::mutex m_volume_mutex;
   std::condition_variable m_volume_cv;
-  std::queue<volume> m_volume_queue;
+  std::queue<volume_change> m_volume_queue;
+  std::condition_variable m_update_current_volume_cv;
+  std::mutex m_update_current_volume_mutex;
+  std::atomic<bool> m_updating_current_volume;
+  std::condition_variable m_updating_current_volume_cv;
   Timer m_notify_timer {};
 };
 

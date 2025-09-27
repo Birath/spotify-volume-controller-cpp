@@ -9,6 +9,7 @@
 
 #include <cpr/response.h>
 #include <cpr/status_codes.h>
+#include <fmt/core.h>
 #include <nlohmann/json_fwd.hpp>
 #include <winuser.h>
 
@@ -49,9 +50,9 @@ void VolumeController::decrease_volume()
   {
     std::lock_guard const lock(m_volume_mutex);
     // Assume that the API call will succeed
-    m_volume = m_volume - m_config.volume_increment();
-    m_volume_queue.push(m_volume);
+    m_volume_queue.push(volume_change::decrease);
   }
+  m_update_current_volume_cv.notify_one();
   if (m_config.batch_delay() > std::chrono::milliseconds(0)) {
     m_notify_timer.start([this]() { m_volume_cv.notify_one(); }, m_config.batch_delay());
   } else {
@@ -64,9 +65,9 @@ void VolumeController::increase_volume()
   {
     std::lock_guard const lock(m_volume_mutex);
     // Assume that the API call will succeed
-    m_volume = m_volume + m_config.volume_increment();
-    m_volume_queue.push(m_volume);
+    m_volume_queue.push(volume_change::increase);
   }
+  m_update_current_volume_cv.notify_one();
   if (m_config.batch_delay() > std::chrono::milliseconds(0)) {
     m_notify_timer.start([this]() { m_volume_cv.notify_one(); }, m_config.batch_delay());
   } else {
@@ -118,11 +119,22 @@ void VolumeController::set_volume_loop()
   while (true) {
     std::unique_lock lock(m_volume_mutex);
     m_volume_cv.wait(lock, [&] { return !m_volume_queue.empty(); });
-    volume new_volume {0};
+    if (m_updating_current_volume) {
+      std::unique_lock update_lock(m_update_current_volume_mutex);
+      m_updating_current_volume_cv.wait(update_lock, [&] { return !m_updating_current_volume; });
+    }
+    volume new_volume = m_volume;
     while (!m_volume_queue.empty()) {
-      new_volume = m_volume_queue.front();
+      const volume_change change = m_volume_queue.front();
+      if (change == volume_change::increase) {
+        new_volume += m_config.volume_increment();
+      } else {
+        new_volume -= m_config.volume_increment();
+      }
       m_volume_queue.pop();
     }
+    m_volume = new_volume;
+    fmt::println("Setting volume to {}", new_volume.m_volume);
     set_volume(new_volume);
   }
 }
@@ -131,17 +143,18 @@ void VolumeController::update_current_volume_loop()
 {
   while (true) {
     {
-      std::lock_guard const lock(m_volume_mutex);
-      if (m_volume_queue.empty()) {
-        std::optional<volume> current_volume = m_client.get_current_playing_volume();
-        if (current_volume.has_value()) {
-          {
-            m_volume = current_volume.value();
-          }
-        }
+      std::unique_lock update_lock(m_update_current_volume_mutex);
+      m_update_current_volume_cv.wait(update_lock);
+      m_updating_current_volume = true;
+      fmt::println("Fetching current volume from Spotify API");
+      std::optional<volume> current_volume = m_client.get_current_playing_volume();
+      if (current_volume.has_value()) {
+        m_volume = current_volume.value();
       }
+      m_updating_current_volume_cv.notify_all();
+      m_updating_current_volume = false;
     }
-    std::this_thread::sleep_for(m_config.poll_rate());
+    std::this_thread::sleep_for(m_config.fetch_cooldown());
   }
 }
 

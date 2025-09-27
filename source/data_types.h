@@ -14,6 +14,12 @@ using volume_t = unsigned int;
 
 constexpr volume_t max_volume {100};
 
+enum class volume_change : std::uint8_t
+{
+  increase,
+  decrease
+};
+
 struct volume
 {
   volume(const volume&) = default;
@@ -72,6 +78,17 @@ struct volume
     return old;
   }
 
+  volume& operator+=(const volume& other)
+  {
+    m_volume = (m_volume + other.m_volume > max_volume) ? max_volume : m_volume + other.m_volume;
+    return *this;
+  }
+
+  volume& operator-=(const volume& other)
+  {
+    m_volume = (m_volume < other.m_volume) ? 0 : m_volume - other.m_volume;
+    return *this;
+  }
   explicit operator volume_t() const { return m_volume; }
 };
 
