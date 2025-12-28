@@ -14,8 +14,7 @@
     "cpr",
     "argparse",
     "nlohmann-json",
-    "cpp-httplib",
-    "libx11"
+    "cpp-httplib"
   ],
   "default-features": [],
   "features": {
