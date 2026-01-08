@@ -26,9 +26,10 @@ using json = nlohmann::json;
 #ifdef _WIN32
 constexpr keycode default_up_keycode = VK_VOLUME_UP;
 constexpr keycode default_down_keycode = VK_VOLUME_DOWN;
-#endif
+#else
 constexpr keycode default_up_keycode = 100;
 constexpr keycode default_down_keycode = 101;
+#endif
 
 VolumeController::VolumeController(const Config& config, Client& client)
     : m_volume()

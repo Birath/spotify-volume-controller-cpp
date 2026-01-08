@@ -22,8 +22,8 @@ namespace spotify_volume_controller::key_hooks
 {
 namespace
 {
-std::unique_ptr<VolumeController> g_controller {};  // NOLINT
 #ifdef _WIN32
+std::unique_ptr<VolumeController> g_controller {};  // NOLINT
 HHOOK hook;  // NOLINT
 
 LRESULT CALLBACK volume_callback(int n_code, WPARAM w_param, LPARAM l_param)
@@ -58,14 +58,15 @@ LRESULT CALLBACK print_v_key(int n_code, WPARAM w_param, LPARAM l_param)
   return CallNextHookEx(nullptr, n_code, w_param, l_param);
 }
 #else
-void volume_callback(uiohook_event* const event)
+void volume_callback(uiohook_event* const event, void* user_data)
 {
+  auto* controller = static_cast<VolumeController*>(user_data);
   switch (event->type) {
     case EVENT_KEY_PRESSED: {
-      if (event->data.keyboard.keycode == g_controller->volume_up_keycode()) {
-        g_controller->increase_volume();
-      } else if (event->data.keyboard.keycode == g_controller->volume_down_keycode()) {
-        g_controller->decrease_volume();
+      if (event->data.keyboard.keycode == controller->volume_up_keycode()) {
+        controller->increase_volume();
+      } else if (event->data.keyboard.keycode == controller->volume_down_keycode()) {
+        controller->decrease_volume();
       }
       break;
     }
@@ -75,8 +76,9 @@ void volume_callback(uiohook_event* const event)
   }
 }
 
-void print_callback(uiohook_event* const event)
+void print_callback(uiohook_event* const event, void* user_data)
 {
+  (void)user_data;
   switch (event->type) {
     case EVENT_KEY_PRESSED: {
       fmt::println("Key pressed {}, rawcode={}", event->data.keyboard.keycode, event->data.keyboard.rawcode);
@@ -96,8 +98,7 @@ void start_volume_hook(std::unique_ptr<VolumeController> controller)
   g_controller = std::move(controller);
   hook = SetWindowsHookExA(WH_KEYBOARD_LL, volume_callback, GetModuleHandle(nullptr), 0);
   MSG msg;
-  while (GetMessage(&msg, nullptr, 0, 0)) {
-  };
+  while (GetMessage(&msg, nullptr, 0, 0)) {};
   UnhookWindowsHookEx(hook);
 }
 
@@ -105,8 +106,7 @@ void start_print_vkey()
 {
   hook = SetWindowsHookExA(WH_KEYBOARD_LL, print_v_key, GetModuleHandle(nullptr), 0);
   MSG msg;
-  while (GetMessage(&msg, nullptr, 0, 0)) {
-  };
+  while (GetMessage(&msg, nullptr, 0, 0)) {};
 
   UnhookWindowsHookEx(hook);
 }
@@ -152,13 +152,12 @@ void print_hook_run_status(int status)
 
 void start_volume_hook(std::unique_ptr<VolumeController> controller)
 {
-  g_controller = std::move(controller);
-  hook_set_dispatch_proc(&volume_callback);
+  hook_set_dispatch_proc(&volume_callback, controller.get());
   print_hook_run_status(hook_run());
 }
 void start_print_vkey()
 {
-  hook_set_dispatch_proc(&print_callback);
+  hook_set_dispatch_proc(&print_callback, nullptr);
   print_hook_run_status(hook_run());
 }
 #endif
