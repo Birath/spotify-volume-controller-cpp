@@ -2,7 +2,7 @@ include(FetchContent)
 FetchContent_Declare(
     uiohook
     GIT_REPOSITORY https://github.com/kwhat/libuiohook
-    GIT_TAG 23acecfe207f8a8b5161bec97a8a6fd6ad0aea88 # 1.2.2
+    GIT_TAG 90c2248503bb62f57e7fc1c0ec339053010e209d # 1.3
     OVERRIDE_FIND_PACKAGE
 )
 
