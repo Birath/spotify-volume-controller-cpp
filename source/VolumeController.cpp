@@ -27,8 +27,8 @@ using json = nlohmann::json;
 constexpr keycode default_up_keycode = VK_VOLUME_UP;
 constexpr keycode default_down_keycode = VK_VOLUME_DOWN;
 #else
-constexpr keycode default_up_keycode = 100;
-constexpr keycode default_down_keycode = 101;
+constexpr keycode default_up_keycode = 57390;
+constexpr keycode default_down_keycode = 57392;
 #endif
 
 VolumeController::VolumeController(const Config& config, Client& client)
