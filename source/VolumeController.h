@@ -71,18 +71,20 @@ private:
   const keycode m_volume_down_keycode;
   std::optional<std::string> m_desktop_device_id;
 
-  std::thread m_client_thread;
-  std::jthread m_update_current_volume_thread;
-  std::jthread m_notify_timer_thread;
-
   std::mutex m_volume_mutex;
+  std::mutex m_update_current_volume_mutex;
+
   std::condition_variable m_volume_cv;
   std::queue<volume_change> m_volume_queue;
   std::condition_variable m_update_current_volume_cv;
-  std::mutex m_update_current_volume_mutex;
   std::atomic<bool> m_updating_current_volume;
   std::condition_variable m_updating_current_volume_cv;
   Timer m_notify_timer {};
+
+  // Initialize last so that we can guarantee that all member variables are initalized before the threads start
+  std::thread m_client_thread;
+  std::jthread m_update_current_volume_thread;
+  std::jthread m_notify_timer_thread;
 };
 
 }  // namespace spotify_volume_controller
