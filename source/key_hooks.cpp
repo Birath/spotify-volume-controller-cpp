@@ -1,72 +1,36 @@
-#include <bit>
 #include <memory>
-#include <utility>
 
 #include "key_hooks.h"
 
 #include <fmt/core.h>
-
+#include <uiohook.h>
 #ifdef __linux__
 #  include <X11/Xlib.h>
-#  include <uiohook.h>
 #endif
 
-#ifdef _WIN32
-#  include <libloaderapi.h>
-#  include <minwindef.h>
-#  include <windef.h>
-#  include <winuser.h>
-#endif
 #include "VolumeController.h"
 namespace spotify_volume_controller::key_hooks
 {
 namespace
 {
-#ifdef _WIN32
-std::unique_ptr<VolumeController> g_controller {};  // NOLINT
-HHOOK hook;  // NOLINT
 
-LRESULT CALLBACK volume_callback(int n_code, WPARAM w_param, LPARAM l_param)
-{
-  if (n_code < 0) {
-    return CallNextHookEx(nullptr, n_code, w_param, l_param);
-  }
-
-  if (w_param == WM_KEYDOWN) {
-    auto* keyboard_struct = std::bit_cast<KBDLLHOOKSTRUCT*>(l_param);
-    if (keyboard_struct->vkCode == g_controller->volume_up_keycode()) {
-      g_controller->increase_volume();
-      return 1;
-    }
-    if (keyboard_struct->vkCode == g_controller->volume_down_keycode()) {
-      g_controller->decrease_volume();
-      return 1;
-    }
-  }
-  return CallNextHookEx(nullptr, n_code, w_param, l_param);
-}
-
-LRESULT CALLBACK print_v_key(int n_code, WPARAM w_param, LPARAM l_param)
-{
-  if (n_code < 0) {
-    return CallNextHookEx(nullptr, n_code, w_param, l_param);
-  }
-  if (w_param == WM_KEYDOWN) {
-    auto* keyboard_struct = std::bit_cast<KBDLLHOOKSTRUCT*>(l_param);
-    fmt::println("{}", keyboard_struct->vkCode);
-  }
-  return CallNextHookEx(nullptr, n_code, w_param, l_param);
-}
-#else
 void volume_callback(uiohook_event* const event, void* user_data)
 {
   auto* controller = static_cast<VolumeController*>(user_data);
   switch (event->type) {
     case EVENT_KEY_PRESSED: {
-      if (event->data.keyboard.keycode == controller->volume_up_keycode()) {
+      // Use rawcodes on Windows for backward compatibility
+#ifdef _WIN32
+      auto const keycode = event->data.keyboard.rawcode;
+#else
+      auto const keycode = event->data.keyboard.keycode;
+#endif
+      if (keycode == controller->volume_up_keycode()) {
         controller->increase_volume();
-      } else if (event->data.keyboard.keycode == controller->volume_down_keycode()) {
+        event->mask |= MASK_CONSUMED;
+      } else if (keycode == controller->volume_down_keycode()) {
         controller->decrease_volume();
+        event->mask |= MASK_CONSUMED;
       }
       break;
     }
@@ -89,28 +53,6 @@ void print_callback(uiohook_event* const event, void* user_data)
     }
   }
 }
-
-#endif
-}  // namespace
-#ifdef _WIN32
-void start_volume_hook(std::unique_ptr<VolumeController> controller)
-{
-  g_controller = std::move(controller);
-  hook = SetWindowsHookExA(WH_KEYBOARD_LL, volume_callback, GetModuleHandle(nullptr), 0);
-  MSG msg;
-  while (GetMessage(&msg, nullptr, 0, 0)) {};
-  UnhookWindowsHookEx(hook);
-}
-
-void start_print_vkey()
-{
-  hook = SetWindowsHookExA(WH_KEYBOARD_LL, print_v_key, GetModuleHandle(nullptr), 0);
-  MSG msg;
-  while (GetMessage(&msg, nullptr, 0, 0)) {};
-
-  UnhookWindowsHookEx(hook);
-}
-#else
 
 void print_hook_run_status(int status)
 {
@@ -150,6 +92,8 @@ void print_hook_run_status(int status)
   }
 }
 
+}  // namespace
+
 void start_volume_hook(std::unique_ptr<VolumeController> controller)
 {
   hook_set_dispatch_proc(&volume_callback, controller.get());
@@ -160,6 +104,5 @@ void start_print_vkey()
   hook_set_dispatch_proc(&print_callback, nullptr);
   print_hook_run_status(hook_run());
 }
-#endif
 
 }  // namespace spotify_volume_controller::key_hooks
